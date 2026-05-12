@@ -26,6 +26,11 @@ import static org.assertj.core.api.Assertions.*;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class EventRepositoryTest {
 
+    static {
+        System.setProperty("DOCKER_HOST", "tcp://localhost:2375");
+        System.setProperty("DOCKER_API_VERSION", "1.41");
+    }
+
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
@@ -49,7 +54,7 @@ class EventRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        jdbcTemplate.execute("TRUNCATE TABLE seats, tickets, events, venues RESTART IDENTITY CASCADE");
+        jdbcTemplate.execute("TRUNCATE TABLE seats, events, venues RESTART IDENTITY CASCADE");
         Venue venue = Venue.builder()
                 .name("Test Salonu")
                 .address("Test Adres")

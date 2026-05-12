@@ -83,7 +83,18 @@
 
     <build>
         <plugins>
-<plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <environmentVariables>
+                        <DOCKER_HOST>tcp://localhost:2375</DOCKER_HOST>
+                        <DOCKER_API_VERSION>1.41</DOCKER_API_VERSION>
+                    </environmentVariables>
+                    <argLine>-DDOCKER_HOST=tcp://localhost:2375 -DDOCKER_API_VERSION=1.41</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>

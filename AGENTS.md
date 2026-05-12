@@ -150,7 +150,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 - `EventService` + `EventController` (GET/POST/PUT/DELETE + `/events/{id}/seats`).
 - `GlobalExceptionHandler` (@ControllerAdvice) → RFC 7807 ProblemDetail, 400/404/409/500.
 - DTO'lar + `EventMapper` (manuel). Springdoc OpenAPI → `/swagger-ui.html`.
-- 12 test yeşil, 7 skip (Testcontainers Docker gerektiriyor — CI/Docker ortamında çalışır).
+- **19/19 test yeşil** — `test-logs/faz-2-green.txt`. Docker API v1.41 (`docker-java.properties` classpath config) ile Testcontainers düzeltildi.
 - **Not:** Lombok annotation processing bu ortamda çalışmadı; domain/DTO sınıfları explicit Builder ile yazıldı.
 
 ---
