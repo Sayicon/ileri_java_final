@@ -46,9 +46,49 @@ tbl324-event-ticketing/
 │       │   └── db/migration/          # Flyway SQL (V1__init.sql)
 │       └── test/java/...              # önce yazılır
 │
-├── service-event/                     # 2. mikroservis: etkinlik + salon + koltuk
-│   └── (aynı yapı: controller/service/repository/domain/dto)
-│       # özel: SeatMapRepository (JDBC), event cache (Redis)
+├── service-event/                     # 2. mikroservis: etkinlik + salon + koltuk  ✅ Faz 2
+│   ├── pom.xml
+│   ├── Dockerfile
+│   └── src/
+│       ├── main/java/com/tbl324/event/
+│       │   ├── EventApplication.java
+│       │   ├── controller/
+│       │   │   └── EventController.java       # GET/POST/PUT/DELETE /events, GET /events/{id}/seats
+│       │   ├── service/
+│       │   │   └── EventService.java          # findAll(page,size), findById, create, update, delete, findSeatsByEventId
+│       │   ├── repository/
+│       │   │   ├── BaseJdbcRepository.java    # abstract Template Method — saf JDBC (Connection+PreparedStatement)
+│       │   │   ├── EventJdbcRepository.java
+│       │   │   ├── VenueJdbcRepository.java
+│       │   │   └── SeatJdbcRepository.java
+│       │   ├── domain/
+│       │   │   ├── Event.java                 # immutable, explicit Builder (Lombok yok)
+│       │   │   ├── Venue.java
+│       │   │   ├── Seat.java
+│       │   │   ├── EventStatus.java           # ACTIVE, CANCELLED, COMPLETED
+│       │   │   └── SeatStatus.java            # AVAILABLE, RESERVED, SOLD
+│       │   ├── dto/
+│       │   │   ├── EventDTO.java
+│       │   │   ├── CreateEventRequest.java    # @NotBlank, @NotNull, @Future validations
+│       │   │   ├── SeatDTO.java
+│       │   │   └── VenueDTO.java
+│       │   ├── mapper/
+│       │   │   └── EventMapper.java           # static utility: toDTO(Event/Seat/Venue), toEntity(CreateEventRequest)
+│       │   └── exception/
+│       │       └── GlobalExceptionHandler.java # @RestControllerAdvice, RFC 7807 ProblemDetail
+│       ├── main/resources/
+│       │   ├── application.yml
+│       │   └── db/migration/
+│       │       ├── V1__init.sql               # venues, events, seats tabloları
+│       │       └── V2__seed.sql               # 2 salon, 2 etkinlik, 500 koltuk (generate_series)
+│       └── test/java/com/tbl324/event/
+│           ├── DockerHostExtension.java
+│           ├── controller/
+│           │   └── EventControllerTest.java   # @WebMvcTest + @MockBean — 8 test
+│           ├── exception/
+│           │   └── GlobalExceptionHandlerTest.java  # 4 test (404/409/400/500)
+│           └── repository/
+│               └── EventRepositoryTest.java   # @Testcontainers PostgreSQL — 7 test
 │
 ├── service-ticket/                    # 3. mikroservis: bilet rezervasyonu + ödeme
 │   └── (aynı yapı)
