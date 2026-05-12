@@ -111,23 +111,16 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 0 — Proje İskeleti & Multi-Module Maven Kurulumu
-**Sorumlu: Kerem + Efe** · **Süre: 1 gün**
+### FAZ 0 — ✅ Tamamlandı
 
-#### A — Testler (önce commit'le)
-- [ ] `shared/src/test/.../SmokeTest.java`: Maven pipeline çalışıyor mu?
-- [ ] `service-auth/src/test/.../ApplicationContextTest.java`: Spring context başlıyor mu?
-- [ ] **Commit:** `test(faz0): maven multi-module test pipeline sanity`
+**Commits:** `9add9e9` (A-red) · `02a02aa` (B-green) · **Tarih:** 2026-05-12
 
-#### B — Uygulama
-- [ ] GitHub repo: `tbl324-event-ticketing`
-- [ ] Parent `pom.xml`: Java 21, Spring Boot 3.3.x, tüm modüller
-- [ ] `shared` iskeleti: `ApiResponse<T>`, `PagedResult<T>`, `ProblemDetail` placeholder
-- [ ] Her servis minimum iskelet: `Application.java` + `application.yml` + `Dockerfile`
-- [ ] `.gitignore`, `DECISIONS.md`, `README.md` placeholder, `docs/architecture.md` placeholder
-- [ ] `mvn -pl shared test` + `mvn -pl service-auth test` → yeşil
-- [ ] `test-logs/faz-0-green.txt`
-- [ ] **AGENTS.md güncelle**
+- Maven Wrapper (`mvnw.cmd`) kuruldu — Maven 3.9.9 otomatik indirilir.
+- Parent POM (Spring Boot 3.3.5, Java 21, Spring Cloud 2023.0.3) + 7 modül tanımlandı.
+- `shared`: `ApiResponse<T>`, `PagedResult<T>`, `ProblemDetail` placeholder'ları.
+- Her servis: `Application.java` + `application.yml` (port 8081-8084, gateway 8080) + `Dockerfile` placeholder.
+- `.gitignore`, `DECISIONS.md`, `README.md`, `docs/architecture.md` oluşturuldu.
+- `SmokeTest` ✅ `ApplicationContextTest` ✅ — `test-logs/faz-0-red.txt` + `faz-0-green.txt`.
 
 ---
 
@@ -334,7 +327,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 | Faz | Sorumlu | Durum | Başlangıç | Bitiş | Commit(ler) |
 |---|---|---|---|---|---|
-| 0 — İskelet | Kerem + Efe | ⬜ | — | — | — |
+| 0 — İskelet | Kerem + Efe | ✅ | 2026-05-12 | 2026-05-12 | `9add9e9` `02a02aa` |
 | 1 — shared / generic | Kerem | ⬜ | — | — | — |
 | 2 — service-event | Efe | ⬜ | — | — | — |
 | 3 — service-auth | Kerem | ⬜ | — | — | — |
