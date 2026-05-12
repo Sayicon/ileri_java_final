@@ -1,0 +1,124 @@
+# Klasör Yapısı
+
+```
+tbl324-event-ticketing/
+├── AGENTS.md                          # bu dosya
+├── README.md                          # final rapor (Faz 10'da doldurulur)
+├── DECISIONS.md                       # tasarım kararları, savunma notları
+├── docker-compose.yml                 # tüm stack (Faz 8)
+├── pom.xml                            # parent POM (multi-module)
+├── .gitignore
+├── .github/workflows/                 # opsiyonel CI
+│   └── tests.yml
+│
+├── shared/                            # ortak modül (DTO, generic sınıflar, exception base)
+│   ├── pom.xml
+│   └── src/main/java/com/tbl324/shared/
+│       ├── api/
+│       │   ├── ApiResponse.java       # Generic<T> wrapper
+│       │   ├── PagedResult.java       # Generic<T> pagination
+│       │   └── ProblemDetail.java     # RFC 7807
+│       ├── exception/
+│       │   ├── DomainException.java
+│       │   ├── NotFoundException.java
+│       │   ├── ConflictException.java
+│       │   └── ValidationException.java
+│       ├── repository/
+│       │   └── Repository.java        # Generic<T, ID> base interface
+│       └── validation/
+│           └── Validator.java         # Generic<T> validator interface
+│
+├── service-auth/                      # 1. mikroservis: kullanıcı + oturum
+│   ├── pom.xml
+│   ├── Dockerfile
+│   └── src/
+│       ├── main/java/com/tbl324/auth/
+│       │   ├── AuthApplication.java
+│       │   ├── config/                # SecurityConfig, RedisConfig, JdbcConfig
+│       │   ├── controller/            # AuthController
+│       │   ├── service/               # AuthService, TokenService, PasswordHasher
+│       │   ├── repository/            # UserJdbcRepository, SessionRedisRepository
+│       │   ├── domain/                # User, Session, Role
+│       │   ├── dto/                   # LoginRequest, RegisterRequest, TokenResponse
+│       │   └── exception/             # AuthException
+│       ├── main/resources/
+│       │   ├── application.yml
+│       │   └── db/migration/          # Flyway SQL (V1__init.sql)
+│       └── test/java/...              # önce yazılır
+│
+├── service-event/                     # 2. mikroservis: etkinlik + salon + koltuk
+│   └── (aynı yapı: controller/service/repository/domain/dto)
+│       # özel: SeatMapRepository (JDBC), event cache (Redis)
+│
+├── service-ticket/                    # 3. mikroservis: bilet rezervasyonu + ödeme
+│   └── (aynı yapı)
+│       # özel: SeatLockService (Redis SETNX + TTL), PaymentStrategy
+│
+├── service-notification/              # 4. mikroservis: bildirim (email/SMS mock)
+│   └── (aynı yapı)
+│       # özel: NotificationFactory (email/sms/push strategy)
+│
+├── gateway/                           # Spring Cloud Gateway
+│   ├── pom.xml
+│   ├── Dockerfile
+│   └── src/main/
+│       ├── java/com/tbl324/gateway/GatewayApplication.java
+│       └── resources/application.yml  # route definitions
+│
+├── desktop-gui/                       # JavaFX masaüstü uygulaması (Custom GUI)
+│   ├── pom.xml
+│   └── src/main/java/com/tbl324/desktop/
+│       ├── DesktopApp.java
+│       ├── view/
+│       │   ├── LoginView.java
+│       │   ├── EventListView.java
+│       │   ├── SeatMapView.java       # ⭐ Custom Canvas — koltuk grid çizimi
+│       │   └── TicketView.java
+│       ├── controller/                # JavaFX controller'lar
+│       ├── api/                       # ApiClient (HttpClient + Jackson)
+│       └── model/                     # UI model sınıfları
+│
+├── android-app/                       # Mobil GUI (Android native Java)
+│   ├── build.gradle                   # Gradle (Android için zorunlu)
+│   ├── app/src/main/
+│   │   ├── java/com/tbl324/mobile/
+│   │   │   ├── MainActivity.java
+│   │   │   ├── activity/              # LoginActivity, EventListActivity, SeatMapActivity, TicketActivity
+│   │   │   ├── api/                   # Retrofit ApiService
+│   │   │   ├── model/                 # POJOs
+│   │   │   └── view/SeatMapView.java  # custom View — Canvas üzerine koltuk grid (mobil için)
+│   │   ├── res/layout/                # XML layout'lar
+│   │   └── AndroidManifest.xml
+│   └── app/src/test/                  # JUnit + Mockito (Android instrumentation gerekmiyor)
+│
+├── perf-tests/                        # Faz 9 — performans testleri
+│   ├── k6/
+│   │   ├── load-test.js               # normal yük
+│   │   ├── stress-test.js             # kırılma noktası
+│   │   ├── spike-test.js              # ani trafik artışı
+│   │   └── soak-test.js               # uzun süreli yük
+│   ├── jmeter/
+│   │   └── event-ticketing.jmx        # GUI demo için
+│   └── reports/                       # k6 JSON çıktıları → markdown tabloya çevrilir
+│
+├── test-logs/                         # her faz sonunda Maven test çıktısı
+│   ├── faz-0-red.txt
+│   ├── faz-0-green.txt
+│   └── ...
+│
+├── docs/
+│   ├── plan/                          # Proje planlama dokümanları (agent bağlamı için)
+│   │   ├── tech-stack-and-rubric.md   # Teknoloji yığını, yasaklar, ortam, rubrik
+│   │   ├── folder-structure.md        # Bu dosya — klasör yapısı
+│   │   ├── risks.md                   # Risk listesi & mitigations
+│   │   ├── phase-details-backup.md    # Tüm faz detaylarının yedeği (orijinal)
+│   │   └── ileri-java-proje.pdf       # Dersin orijinal ödev tanımı (TBL324)
+│   ├── architecture.md                # Mermaid component + sequence diagram'ları
+│   ├── api/                           # Springdoc OpenAPI ihraç dosyaları
+│   └── performance-report.md          # Faz 9 çıktısı
+│
+└── scripts/
+    ├── seed-data.sql                  # demo verisi (etkinlik, salon, kullanıcı)
+    ├── wait-for-it.sh                 # docker-compose health check
+    └── run-perf.sh                    # k6 + report üretimi
+```
