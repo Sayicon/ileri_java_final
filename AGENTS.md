@@ -142,7 +142,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ### FAZ 2 — ✅ Tamamlandı
 
-**Commits:** `2fb95e3` (A-red) · `[B-commit]` (B-green) · **Tarih:** 2026-05-12
+**Commits:** `2fb95e3` (A-red) · `e70613a` (B-green) · **Tarih:** 2026-05-12
 
 - Flyway V1-V4: `venues`, `events`, `seats` tabloları + seed data.
 - Domain: `Event`, `Venue`, `Seat` (explicit Builder pattern, Lombok yok — annotation processor ortam sorunu).
@@ -311,7 +311,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 |---|---|---|---|---|---|
 | 0 — İskelet | Kerem + Efe | ✅ | 2026-05-12 | 2026-05-12 | `9add9e9` `02a02aa` |
 | 1 — shared / generic | Kerem | ✅ | 2026-05-12 | 2026-05-12 | `49488a0` `ae79964` |
-| 2 — service-event | Efe | ✅ | 2026-05-12 | 2026-05-12 | `2fb95e3` `[B]` |
+| 2 — service-event | Efe | ✅ | 2026-05-12 | 2026-05-12 | `2fb95e3` `e70613a` |
 | 3 — service-auth | Kerem | ⬜ | — | — | — |
 | 4 — service-ticket + notification | Kerem + Efe | ⬜ | — | — | — |
 | 5 — JavaFX desktop | Efe | ⬜ | — | — | — |
