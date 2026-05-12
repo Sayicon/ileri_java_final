@@ -1,14 +1,17 @@
 ﻿target/
+out/
 *.class
 *.jar
 *.war
-!mvnw.cmd
-!mvnw
+
+mvnw
+mvnw.cmd
 
 .idea/
 *.iml
 .vscode/
 *.DS_Store
+*.log
 
 application-dev.yml
 application-local.yml
@@ -20,6 +23,9 @@ build/
 .gradle/
 android-app/.idea/
 android-app/local.properties
+android-app/app/build/
+*.jks
+*.keystore
 
 node_modules/
 outputs/
