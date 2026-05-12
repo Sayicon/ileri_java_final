@@ -21,7 +21,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class EventRepositoryTest {
@@ -77,8 +77,8 @@ class EventRepositoryTest {
             eventRepository.save(buildEvent("Etkinlik " + i));
         }
 
-        List<Event> page1 = eventRepository.findAll(0, 3);
-        List<Event> page2 = eventRepository.findAll(3, 3);
+        List<Event> page1 = eventRepository.findList(0, 3);
+        List<Event> page2 = eventRepository.findList(3, 3);
 
         assertThat(page1).hasSize(3);
         assertThat(page2).hasSize(2);
