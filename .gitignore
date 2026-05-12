@@ -4,9 +4,6 @@ out/
 *.jar
 *.war
 
-mvnw
-mvnw.cmd
-
 .idea/
 *.iml
 .vscode/
