@@ -44,7 +44,7 @@ class NotificationFactoryTest {
         Notifier sms   = factory.getNotifier(NotificationType.SMS);
         Notifier push  = factory.getNotifier(NotificationType.PUSH);
 
-        assertThat(email).isNotSameInstanceAs(sms);
-        assertThat(sms).isNotSameInstanceAs(push);
+        assertThat(email).isNotSameAs(sms);
+        assertThat(sms).isNotSameAs(push);
     }
 }

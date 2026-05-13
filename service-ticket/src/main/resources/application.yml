@@ -4,3 +4,34 @@ server:
 spring:
   application:
     name: service-ticket
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ticketdb}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+redis:
+  host: ${REDIS_HOST:localhost}
+  port: ${REDIS_PORT:6379}
+
+services:
+  event:
+    url: ${EVENT_SERVICE_URL:http://localhost:8082}
+  notification:
+    url: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
