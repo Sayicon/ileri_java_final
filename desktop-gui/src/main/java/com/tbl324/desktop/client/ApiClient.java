@@ -1,0 +1,86 @@
+package com.tbl324.desktop.client;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tbl324.desktop.model.EventDTO;
+import com.tbl324.desktop.model.SeatDTO;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.List;
+
+public class ApiClient {
+
+    private final String baseUrl;
+    private final HttpClient http;
+    private final ObjectMapper mapper;
+    private String token;
+
+    public ApiClient(String baseUrl) {
+        this.baseUrl = baseUrl;
+        this.http    = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(5))
+                .build();
+        this.mapper  = new ObjectMapper();
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public List<EventDTO> getEvents() throws ApiException {
+        HttpRequest.Builder req = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/api/events"))
+                .GET();
+        if (token != null) req.header("Authorization", "Bearer " + token);
+        return send(req.build(), new TypeReference<>() {});
+    }
+
+    public List<SeatDTO> getSeats(Long eventId) throws ApiException {
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/api/events/" + eventId + "/seats"))
+                .GET().build();
+        return send(req, new TypeReference<>() {});
+    }
+
+    public void reserve(Long eventId, Long seatId, Long userId) throws ApiException {
+        String body = String.format(
+                "{\"eventId\":%d,\"seatId\":%d,\"userId\":%d}", eventId, seatId, userId);
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/api/tickets/reserve"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+        sendVoid(req);
+    }
+
+    private <T> T send(HttpRequest req, TypeReference<T> type) throws ApiException {
+        try {
+            HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() < 200 || resp.statusCode() >= 300) {
+                throw new ApiException(resp.statusCode());
+            }
+            return mapper.readValue(resp.body(), type);
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException(e);
+        }
+    }
+
+    private void sendVoid(HttpRequest req) throws ApiException {
+        try {
+            HttpResponse<Void> resp = http.send(req, HttpResponse.BodyHandlers.discarding());
+            if (resp.statusCode() < 200 || resp.statusCode() >= 300) {
+                throw new ApiException(resp.statusCode());
+            }
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException(e);
+        }
+    }
+}

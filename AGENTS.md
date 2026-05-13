@@ -188,23 +188,16 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 5 — JavaFX Desktop GUI (Custom Graphics)
-**Sorumlu: Efe** · **Süre: 3-4 gün**
+### FAZ 5 — ✅ Tamamlandı
 
-#### A — Testler (önce commit'le)
-- [ ] `ApiClient` mock HTTP server testi; 401/500/network hata işleme
-- [ ] `SeatGrid.fromSeats()` → 2D grid; `atPixel(x,y,scale)` → doğru seat; spacer hücre
-- [ ] `SeatColorMapper`: AVAILABLE/LOCKED/SOLD/SELECTED → deterministik farklı Color
-- [ ] **Commit:** `test(faz5): javafx api client + seat grid model + color mapper`
+**Commits:** `86bc758` (A-red) · B-green (bu faz) · **Tarih:** 2026-05-14
 
-#### B — Uygulama
-- [ ] JavaFX 21 bağımlılıkları
-- [ ] `LoginView` (FXML) + `EventListView` (ListView+pagination) + `TicketView`
-- [ ] `SeatMapView` ⭐: Canvas+GraphicsContext, koltuk grid çizimi, renk durumları, mouse (tıklama/multi-select/pan/scroll-zoom), "Rezerve Et" → `POST /tickets/reserve`
-- [ ] `ApiClient` (HttpClient wrapper, token in-memory), `SeatGrid` model
-- [ ] Manuel demo + screenshot → `docs/demo-screenshots/`
-- [ ] `mvn -pl desktop-gui test` → yeşil · `test-logs/faz-5-green.txt`
-- [ ] **AGENTS.md güncelle**
+- `SeatStatus` enum (AVAILABLE/LOCKED/SOLD/SELECTED), `SeatDTO` record, `EventDTO` record.
+- `SeatGrid.fromSeats(List, cols)` — 2D grid; `at(row,col)` → Optional; `atPixel(x,y,cellSize)` → Optional.
+- `SeatColorMapper.colorFor(SeatStatus)` → `java.awt.Color` (4 farklı renk); `fxColorFor()` → JavaFX Color.
+- `ApiException`, `ApiClient` (Java HttpClient, token in-memory) — getEvents/getSeats/reserve.
+- `LoginView` (programmatic), `EventListView` (ListView + virtual thread yükleme), `SeatMapView` ⭐ (Canvas+GraphicsContext, tıklama/seçim/renklendirme, "Rezerve Et" → POST).
+- **15/15 test yeşil** (WireMock mock HTTP sunucu) · `test-logs/faz-5-green.txt`.
 
 ---
 
@@ -302,7 +295,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 2 — service-event | Efe | ✅ | 2026-05-12 | 2026-05-12 | `2fb95e3` `e70613a` |
 | 3 — service-auth | Kerem | ✅ | 2026-05-13 | 2026-05-13 | `12a0de5` `3fba2f3` |
 | 4 — service-ticket + notification | Kerem + Efe | ✅ | 2026-05-13 | 2026-05-13 | `4d52cb1` B-green |
-| 5 — JavaFX desktop | Efe | ⬜ | — | — | — |
+| 5 — JavaFX desktop | Efe | ✅ | 2026-05-14 | 2026-05-14 | `86bc758` B-green |
 | 6 — gateway | Kerem | ⬜ | — | — | — |
 | 7 — android | Efe | ⬜ | — | — | — |
 | 8 — dockerize | Kerem | ⬜ | — | — | — |
