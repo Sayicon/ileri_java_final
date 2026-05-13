@@ -4,6 +4,60 @@ server:
 spring:
   application:
     name: gateway
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
   cloud:
     gateway:
-      routes: []
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: false
+
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 100
+            redis-rate-limiter.burstCapacity: 100
+            key-resolver: "#{@ipKeyResolver}"
+
+      routes:
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=1
+
+        - id: event-service
+          uri: ${EVENT_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/events/**
+          filters:
+            - StripPrefix=1
+
+        - id: ticket-service
+          uri: ${TICKET_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/tickets/**
+          filters:
+            - StripPrefix=1
+
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - StripPrefix=1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
