@@ -140,29 +140,18 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 2 — `service-event`: JDBC Repository + Etkinlik CRUD
-**Sorumlu: Efe** · **Süre: 3 gün**
+### FAZ 2 — ✅ Tamamlandı
 
-> JDBC pattern'ı burada oturur → diğer servislere şablon olur.
+**Commits:** `2fb95e3` (A-red) · `e70613a` (B-green) · **Tarih:** 2026-05-12
 
-#### A — Testler (önce commit'le)
-- [ ] Testcontainers Postgres ile: save/findById/findAll(pagination)/delete/unique constraint
-- [ ] SQL injection → PreparedStatement ile zararsız
-- [ ] Connection leak yok (1000 çağrı → HikariCP sayısı baseline'a döner)
-- [ ] `GET /events` → 200 + `ApiResponse<PagedResult<EventDTO>>`; 404 → ProblemDetail; POST validation → 400
-- [ ] `@ControllerAdvice` → doğru HTTP status haritalama
-- [ ] **Commit:** `test(faz2): event service JDBC repository + REST controller + error handling`
-
-#### B — Uygulama
-- [ ] Flyway migration: `events`, `venues`, `seats` + seed data
-- [ ] Domain: `Event`, `Venue`, `Seat`
-- [ ] `BaseJdbcRepository` abstract template + `EventJdbcRepository`, `VenueJdbcRepository`, `SeatJdbcRepository`
-- [ ] `EventService` + `EventController` (CRUD + `/events/{id}/seats`)
-- [ ] `GlobalExceptionHandler` (`@ControllerAdvice`)
-- [ ] DTO'lar + `EventMapper` (manuel)
-- [ ] Springdoc OpenAPI → `/swagger-ui.html`
-- [ ] `mvn -pl service-event test` → yeşil · `test-logs/faz-2-green.txt`
-- [ ] **AGENTS.md güncelle**
+- Flyway V1-V4: `venues`, `events`, `seats` tabloları + seed data.
+- Domain: `Event`, `Venue`, `Seat` (explicit Builder pattern, Lombok yok — annotation processor ortam sorunu).
+- `BaseJdbcRepository<T,ID>` abstract Template Method (saf JDBC, HikariCP); `EventJdbcRepository`, `VenueJdbcRepository`, `SeatJdbcRepository`.
+- `EventService` + `EventController` (GET/POST/PUT/DELETE + `/events/{id}/seats`).
+- `GlobalExceptionHandler` (@ControllerAdvice) → RFC 7807 ProblemDetail, 400/404/409/500.
+- DTO'lar + `EventMapper` (manuel). Springdoc OpenAPI → `/swagger-ui.html`.
+- **19/19 test yeşil** — `test-logs/faz-2-green.txt`. Docker API v1.41 (`docker-java.properties` classpath config) ile Testcontainers düzeltildi.
+- **Not:** Lombok annotation processing bu ortamda çalışmadı; domain/DTO sınıfları explicit Builder ile yazıldı.
 
 ---
 
@@ -322,7 +311,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 |---|---|---|---|---|---|
 | 0 — İskelet | Kerem + Efe | ✅ | 2026-05-12 | 2026-05-12 | `9add9e9` `02a02aa` |
 | 1 — shared / generic | Kerem | ✅ | 2026-05-12 | 2026-05-12 | `49488a0` `ae79964` |
-| 2 — service-event | Efe | ⬜ | — | — | — |
+| 2 — service-event | Efe | ✅ | 2026-05-12 | 2026-05-12 | `2fb95e3` `e70613a` |
 | 3 — service-auth | Kerem | ⬜ | — | — | — |
 | 4 — service-ticket + notification | Kerem + Efe | ⬜ | — | — | — |
 | 5 — JavaFX desktop | Efe | ⬜ | — | — | — |
