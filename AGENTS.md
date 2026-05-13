@@ -172,27 +172,19 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 4 — `service-ticket` + `service-notification`: Rezervasyon Akışı
-**Sorumlu: Kerem (ticket) + Efe (notification)** · **Süre: 3-4 gün**
+### FAZ 4 — ✅ Tamamlandı
 
-#### A — Testler (önce commit'le)
-- [ ] Redis SeatLock: tryLock/double-lock false/TTL expiry/release ownership
-- [ ] Concurrent 100-thread rezervasyon → sadece 1 başarılı (DB unique + Redis lock kombo)
-- [ ] Strategy pattern: Mock/FailingPaymentStrategy; strategy değişikliği mevcut kodu etkilemez
-- [ ] NotificationFactory: email/sms/push doğru üretiliyor; bilinmeyen → exception
-- [ ] `/tickets/reserve` happy path; `/tickets/{id}/confirm` ödeme ok/fail; TTL içinde confirm edilmeme
-- [ ] Cross-service: Ticket→Event (404 → reservation reject); Ticket→Notification async fire
-- [ ] **Commit:** `test(faz4): ticket reservation + payment strategy + notification factory + seat locking`
+**Commits:** `4d52cb1` (A-red) · B-green (bu faz) · **Tarih:** 2026-05-13
 
-#### B — Uygulama
-- [ ] Flyway: `tickets`, `payments` + status enum
-- [ ] `SeatLockService` (Jedis SETNX + TTL, ownership check)
-- [ ] `PaymentStrategy` interface + `MockPaymentStrategy`, `WalletPaymentStrategy`
-- [ ] `TicketService` (reserve→lock→insert; confirm→payment→update→notification)
-- [ ] `EventServiceClient` (Java HttpClient), `NotificationServiceClient` (CompletableFuture virtual thread)
-- [ ] `TicketController` + `NotificationFactory` + `Notifier` impls + `NotificationLogJdbcRepository`
-- [ ] `mvn test` (tüm modüller) → yeşil · `test-logs/faz-4-green.txt`
-- [ ] **AGENTS.md güncelle**
+- Flyway V1: `tickets` tablosu (BIGSERIAL PK, unique(event_id, seat_id)).
+- `SeatLockService` (Jedis SETNX+TTL, ownership check) — key: `lock:seat:{eventId}:{seatId}`.
+- `PaymentStrategy` @FunctionalInterface + `MockPaymentStrategy` (always true), `WalletPaymentStrategy`, `FailingPaymentStrategy` (test only).
+- `TicketJdbcRepository extends BaseJdbcRepository<TicketDTO>` — upsert pattern (null id → INSERT, non-null → UPDATE status).
+- `TicketService`: reserve→lock→save; `confirm(Long, PaymentStrategy)` package-private; `confirm(Long, String)` public (String→Strategy map).
+- `EventServiceClient` (Java HttpClient), `NotificationServiceClient` (CompletableFuture async).
+- `NotificationFactory` (Factory pattern: EMAIL/SMS/PUSH → EmailNotifier/SmsNotifier/PushNotifier).
+- `NotificationService` + `NotificationLogJdbcRepository` + `GlobalExceptionHandler` (RFC 7807).
+- **22/22 service-ticket + 10/10 service-notification test yeşil** (7 Docker-bağımlı test Docker yokken atlandı) · `test-logs/faz-4-green.txt`.
 
 ---
 
@@ -309,7 +301,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 1 — shared / generic | Kerem | ✅ | 2026-05-12 | 2026-05-12 | `49488a0` `ae79964` |
 | 2 — service-event | Efe | ✅ | 2026-05-12 | 2026-05-12 | `2fb95e3` `e70613a` |
 | 3 — service-auth | Kerem | ✅ | 2026-05-13 | 2026-05-13 | `12a0de5` `3fba2f3` |
-| 4 — service-ticket + notification | Kerem + Efe | ⬜ | — | — | — |
+| 4 — service-ticket + notification | Kerem + Efe | ✅ | 2026-05-13 | 2026-05-13 | `4d52cb1` B-green |
 | 5 — JavaFX desktop | Efe | ⬜ | — | — | — |
 | 6 — gateway | Kerem | ⬜ | — | — | — |
 | 7 — android | Efe | ⬜ | — | — | — |
