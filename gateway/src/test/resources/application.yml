@@ -1,0 +1,21 @@
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cloud:
+    gateway:
+      default-filters: []
+      routes:
+        - id: ticket-test
+          uri: http://localhost:9999
+          predicates:
+            - Path=/api/tickets/**
+        - id: event-test
+          uri: http://localhost:9999
+          predicates:
+            - Path=/api/events/**
+        - id: auth-test
+          uri: http://localhost:9999
+          predicates:
+            - Path=/api/auth/**

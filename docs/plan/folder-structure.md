@@ -125,12 +125,25 @@ tbl324-event-ticketing/
 │   └── (aynı yapı)
 │       # özel: NotificationFactory (email/sms/push strategy)
 │
-├── gateway/                           # Spring Cloud Gateway
+├── gateway/                           # Spring Cloud Gateway  ✅ Faz 6
 │   ├── pom.xml
 │   ├── Dockerfile
-│   └── src/main/
-│       ├── java/com/tbl324/gateway/GatewayApplication.java
-│       └── resources/application.yml  # route definitions
+│   └── src/
+│       ├── main/java/com/tbl324/gateway/
+│       │   ├── GatewayApplication.java
+│       │   ├── config/
+│       │   │   └── RateLimitConfig.java        # @Bean ipKeyResolver — IP bazlı rate limit
+│       │   └── filter/
+│       │       ├── AuthGatewayFilter.java      # GlobalFilter order=-1 — /api/tickets Bearer zorunlu
+│       │       └── LoggingFilter.java          # GlobalFilter LOWEST_PRECEDENCE — method+path log
+│       ├── main/resources/
+│       │   └── application.yml                 # 4 route, RequestRateLimiter, globalcors
+│       └── test/java/com/tbl324/gateway/
+│           ├── filter/
+│           │   └── AuthGatewayFilterTest.java  # 5 unit test (MockServerWebExchange+StepVerifier)
+│           ├── GatewayIntegrationTest.java     # 4 test (@SpringBootTest + WebTestClient)
+│           └── resources/
+│               └── application.yml            # test: default-filters:[] Redis yok, route→9999
 │
 ├── desktop-gui/                       # JavaFX masaüstü uygulaması (Custom GUI)
 │   ├── pom.xml

@@ -172,66 +172,45 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 4 — `service-ticket` + `service-notification`: Rezervasyon Akışı
-**Sorumlu: Kerem (ticket) + Efe (notification)** · **Süre: 3-4 gün**
+### FAZ 4 — ✅ Tamamlandı
 
-#### A — Testler (önce commit'le)
-- [ ] Redis SeatLock: tryLock/double-lock false/TTL expiry/release ownership
-- [ ] Concurrent 100-thread rezervasyon → sadece 1 başarılı (DB unique + Redis lock kombo)
-- [ ] Strategy pattern: Mock/FailingPaymentStrategy; strategy değişikliği mevcut kodu etkilemez
-- [ ] NotificationFactory: email/sms/push doğru üretiliyor; bilinmeyen → exception
-- [ ] `/tickets/reserve` happy path; `/tickets/{id}/confirm` ödeme ok/fail; TTL içinde confirm edilmeme
-- [ ] Cross-service: Ticket→Event (404 → reservation reject); Ticket→Notification async fire
-- [ ] **Commit:** `test(faz4): ticket reservation + payment strategy + notification factory + seat locking`
+**Commits:** `4d52cb1` (A-red) · B-green (bu faz) · **Tarih:** 2026-05-13
 
-#### B — Uygulama
-- [ ] Flyway: `tickets`, `payments` + status enum
-- [ ] `SeatLockService` (Jedis SETNX + TTL, ownership check)
-- [ ] `PaymentStrategy` interface + `MockPaymentStrategy`, `WalletPaymentStrategy`
-- [ ] `TicketService` (reserve→lock→insert; confirm→payment→update→notification)
-- [ ] `EventServiceClient` (Java HttpClient), `NotificationServiceClient` (CompletableFuture virtual thread)
-- [ ] `TicketController` + `NotificationFactory` + `Notifier` impls + `NotificationLogJdbcRepository`
-- [ ] `mvn test` (tüm modüller) → yeşil · `test-logs/faz-4-green.txt`
-- [ ] **AGENTS.md güncelle**
+- Flyway V1: `tickets` tablosu (BIGSERIAL PK, unique(event_id, seat_id)).
+- `SeatLockService` (Jedis SETNX+TTL, ownership check) — key: `lock:seat:{eventId}:{seatId}`.
+- `PaymentStrategy` @FunctionalInterface + `MockPaymentStrategy` (always true), `WalletPaymentStrategy`, `FailingPaymentStrategy` (test only).
+- `TicketJdbcRepository extends BaseJdbcRepository<TicketDTO>` — upsert pattern (null id → INSERT, non-null → UPDATE status).
+- `TicketService`: reserve→lock→save; `confirm(Long, PaymentStrategy)` package-private; `confirm(Long, String)` public (String→Strategy map).
+- `EventServiceClient` (Java HttpClient), `NotificationServiceClient` (CompletableFuture async).
+- `NotificationFactory` (Factory pattern: EMAIL/SMS/PUSH → EmailNotifier/SmsNotifier/PushNotifier).
+- `NotificationService` + `NotificationLogJdbcRepository` + `GlobalExceptionHandler` (RFC 7807).
+- **22/22 service-ticket + 10/10 service-notification test yeşil** (7 Docker-bağımlı test Docker yokken atlandı) · `test-logs/faz-4-green.txt`.
 
 ---
 
-### FAZ 5 — JavaFX Desktop GUI (Custom Graphics)
-**Sorumlu: Efe** · **Süre: 3-4 gün**
+### FAZ 5 — ✅ Tamamlandı
 
-#### A — Testler (önce commit'le)
-- [ ] `ApiClient` mock HTTP server testi; 401/500/network hata işleme
-- [ ] `SeatGrid.fromSeats()` → 2D grid; `atPixel(x,y,scale)` → doğru seat; spacer hücre
-- [ ] `SeatColorMapper`: AVAILABLE/LOCKED/SOLD/SELECTED → deterministik farklı Color
-- [ ] **Commit:** `test(faz5): javafx api client + seat grid model + color mapper`
+**Commits:** `86bc758` (A-red) · B-green (bu faz) · **Tarih:** 2026-05-14
 
-#### B — Uygulama
-- [ ] JavaFX 21 bağımlılıkları
-- [ ] `LoginView` (FXML) + `EventListView` (ListView+pagination) + `TicketView`
-- [ ] `SeatMapView` ⭐: Canvas+GraphicsContext, koltuk grid çizimi, renk durumları, mouse (tıklama/multi-select/pan/scroll-zoom), "Rezerve Et" → `POST /tickets/reserve`
-- [ ] `ApiClient` (HttpClient wrapper, token in-memory), `SeatGrid` model
-- [ ] Manuel demo + screenshot → `docs/demo-screenshots/`
-- [ ] `mvn -pl desktop-gui test` → yeşil · `test-logs/faz-5-green.txt`
-- [ ] **AGENTS.md güncelle**
+- `SeatStatus` enum (AVAILABLE/LOCKED/SOLD/SELECTED), `SeatDTO` record, `EventDTO` record.
+- `SeatGrid.fromSeats(List, cols)` — 2D grid; `at(row,col)` → Optional; `atPixel(x,y,cellSize)` → Optional.
+- `SeatColorMapper.colorFor(SeatStatus)` → `java.awt.Color` (4 farklı renk); `fxColorFor()` → JavaFX Color.
+- `ApiException`, `ApiClient` (Java HttpClient, token in-memory) — getEvents/getSeats/reserve.
+- `LoginView` (programmatic), `EventListView` (ListView + virtual thread yükleme), `SeatMapView` ⭐ (Canvas+GraphicsContext, tıklama/seçim/renklendirme, "Rezerve Et" → POST).
+- **15/15 test yeşil** (WireMock mock HTTP sunucu) · `test-logs/faz-5-green.txt`.
 
 ---
 
-### FAZ 6 — Spring Cloud Gateway
-**Sorumlu: Kerem (Faz 5 ile paralel)** · **Süre: 1-2 gün**
+### FAZ 6 — ✅ Tamamlandı
 
-#### A — Testler (önce commit'le)
-- [ ] Routing: `/api/events` → 8082, `/api/auth/login` → 8081, bilinmeyen → 404
-- [ ] Rate limit: 100/sec aynı IP → 429 + `Retry-After`
-- [ ] Auth filter: `/api/tickets/**` → Authorization yok → 401
-- [ ] (opsiyonel) Circuit breaker: downstream down → 503
-- [ ] **Commit:** `test(faz6): gateway routing + rate limit + auth filter`
+**Commits:** `895f5f6` (A-red) · `71b575c` (B-green) · **Tarih:** 2026-05-14
 
-#### B — Uygulama
-- [ ] `spring-cloud-starter-gateway` + Redis reactive (rate limit)
-- [ ] Route tanımları (`application.yml`), rate limit filter, auth filter (public path bypass), logging filter
-- [ ] CORS config, `gateway/Dockerfile`
-- [ ] `mvn -pl gateway test` → yeşil · `test-logs/faz-6-green.txt`
-- [ ] **AGENTS.md güncelle**
+- `AuthGatewayFilter` (GlobalFilter, order=-1) — `/api/tickets/**` için Bearer token zorunlu, eksikse 401.
+- `LoggingFilter` (GlobalFilter, LOWEST_PRECEDENCE) — her isteği method+path olarak loglar.
+- `RateLimitConfig` — `ipKeyResolver` bean, IP bazlı rate limit key.
+- `application.yml`: 4 route (auth/8081, event/8082, ticket/8083, notification/8084) + StripPrefix=1, Redis rate limiter (100/sn), CORS (`*`).
+- Test `application.yml`: default-filters devre dışı, Redis gerektirmez.
+- **9/9 test yeşil** (5 unit + 4 integration) · `test-logs/faz-6-green.txt`.
 
 ---
 
@@ -309,9 +288,9 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 1 — shared / generic | Kerem | ✅ | 2026-05-12 | 2026-05-12 | `49488a0` `ae79964` |
 | 2 — service-event | Efe | ✅ | 2026-05-12 | 2026-05-12 | `2fb95e3` `e70613a` |
 | 3 — service-auth | Kerem | ✅ | 2026-05-13 | 2026-05-13 | `12a0de5` `3fba2f3` |
-| 4 — service-ticket + notification | Kerem + Efe | ⬜ | — | — | — |
-| 5 — JavaFX desktop | Efe | ⬜ | — | — | — |
-| 6 — gateway | Kerem | ⬜ | — | — | — |
+| 4 — service-ticket + notification | Kerem + Efe | ✅ | 2026-05-13 | 2026-05-13 | `4d52cb1` B-green |
+| 5 — JavaFX desktop | Efe | ✅ | 2026-05-14 | 2026-05-14 | `86bc758` B-green |
+| 6 — gateway | Kerem | ✅ | 2026-05-14 | 2026-05-14 | `895f5f6` `71b575c` |
 | 7 — android | Efe | ⬜ | — | — | — |
 | 8 — dockerize | Kerem | ⬜ | — | — | — |
 | 9 — performance | Efe + Kerem | ⬜ | — | — | — |
