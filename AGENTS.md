@@ -201,22 +201,16 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 6 — Spring Cloud Gateway
-**Sorumlu: Kerem (Faz 5 ile paralel)** · **Süre: 1-2 gün**
+### FAZ 6 — ✅ Tamamlandı
 
-#### A — Testler (önce commit'le)
-- [ ] Routing: `/api/events` → 8082, `/api/auth/login` → 8081, bilinmeyen → 404
-- [ ] Rate limit: 100/sec aynı IP → 429 + `Retry-After`
-- [ ] Auth filter: `/api/tickets/**` → Authorization yok → 401
-- [ ] (opsiyonel) Circuit breaker: downstream down → 503
-- [ ] **Commit:** `test(faz6): gateway routing + rate limit + auth filter`
+**Commits:** `895f5f6` (A-red) · `71b575c` (B-green) · **Tarih:** 2026-05-14
 
-#### B — Uygulama
-- [ ] `spring-cloud-starter-gateway` + Redis reactive (rate limit)
-- [ ] Route tanımları (`application.yml`), rate limit filter, auth filter (public path bypass), logging filter
-- [ ] CORS config, `gateway/Dockerfile`
-- [ ] `mvn -pl gateway test` → yeşil · `test-logs/faz-6-green.txt`
-- [ ] **AGENTS.md güncelle**
+- `AuthGatewayFilter` (GlobalFilter, order=-1) — `/api/tickets/**` için Bearer token zorunlu, eksikse 401.
+- `LoggingFilter` (GlobalFilter, LOWEST_PRECEDENCE) — her isteği method+path olarak loglar.
+- `RateLimitConfig` — `ipKeyResolver` bean, IP bazlı rate limit key.
+- `application.yml`: 4 route (auth/8081, event/8082, ticket/8083, notification/8084) + StripPrefix=1, Redis rate limiter (100/sn), CORS (`*`).
+- Test `application.yml`: default-filters devre dışı, Redis gerektirmez.
+- **9/9 test yeşil** (5 unit + 4 integration) · `test-logs/faz-6-green.txt`.
 
 ---
 
@@ -296,7 +290,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 3 — service-auth | Kerem | ✅ | 2026-05-13 | 2026-05-13 | `12a0de5` `3fba2f3` |
 | 4 — service-ticket + notification | Kerem + Efe | ✅ | 2026-05-13 | 2026-05-13 | `4d52cb1` B-green |
 | 5 — JavaFX desktop | Efe | ✅ | 2026-05-14 | 2026-05-14 | `86bc758` B-green |
-| 6 — gateway | Kerem | ⬜ | — | — | — |
+| 6 — gateway | Kerem | ✅ | 2026-05-14 | 2026-05-14 | `895f5f6` `71b575c` |
 | 7 — android | Efe | ⬜ | — | — | — |
 | 8 — dockerize | Kerem | ⬜ | — | — | — |
 | 9 — performance | Efe + Kerem | ⬜ | — | — | — |
