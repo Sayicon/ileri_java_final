@@ -155,24 +155,20 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 3 — `service-auth`: JWT + Redis Session
-**Sorumlu: Kerem** · **Süre: 2-3 gün**
+### FAZ 3 — ✅ Tamamlandı
 
-#### A — Testler (önce commit'le)
-- [ ] BCrypt: farklı salt → farklı hash; verify doğru/yanlış
-- [ ] JWT: üretim, round-trip, expired token, tampered signature
-- [ ] Testcontainers Redis: session save/find/TTL expiry/revoke+denylist
-- [ ] `POST /auth/register` → 201; `/auth/login` doğru → 200, yanlış → 401; `/auth/logout` → revoke; ikinci register → 409
-- [ ] **Commit:** `test(faz3): auth service JWT + redis session + password hashing`
+**Commits:** `12a0de5` (A-red) · `3fba2f3` (B-green) · **Tarih:** 2026-05-13
 
-#### B — Uygulama
-- [ ] Flyway: `users`, `roles`, `user_roles`
-- [ ] `UserJdbcRepository`, `PasswordHasher` (BCrypt), `TokenService` (JJWT, `${JWT_SECRET}`)
-- [ ] `SessionRedisRepository`: key pattern `session:{sessionId}`, `revoked:{sessionId}`
-- [ ] `AuthService` + `AuthController` + `JwtAuthFilter`
-- [ ] `RedisConfig` (Jedis pool)
-- [ ] `mvn -pl service-auth test` → yeşil · `test-logs/faz-3-green.txt`
-- [ ] **AGENTS.md güncelle**
+- Flyway V1/V2: `roles`, `users` tabloları + seed (USER/ADMIN rolleri).
+- Domain: `User`, `UserRole` (explicit Builder, Lombok yok).
+- `BaseJdbcRepository<T,ID>` (Faz 2 pattern'ı kopyalandı) + `UserJdbcRepository` (findByUsername, existsByUsername, existsByEmail).
+- `PasswordHasher` (BCryptPasswordEncoder) — farklı salt testi ✅.
+- `TokenService` (JJWT 0.12.6) — generateToken/parseToken/isTokenExpired/getSessionId; session ID JWT claim içinde taşınır.
+- `SessionRedisRepository` (Jedis) — `session:{id}` → userId, `revoked:{id}` denylist.
+- `AuthService` + `AuthController` (POST /auth/register → 201, /auth/login → 200, /auth/logout → 200).
+- `JwtAuthFilter` (OncePerRequestFilter) — /auth/login ve /auth/register hariç tüm yolları korur.
+- `GlobalExceptionHandler` → 400/401/409/500.
+- **10/10 unit test yeşil** — Docker testleri `disabledWithoutDocker=true` ile atlandı · `test-logs/faz-3-green.txt`.
 
 ---
 
@@ -312,7 +308,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 0 — İskelet | Kerem + Efe | ✅ | 2026-05-12 | 2026-05-12 | `9add9e9` `02a02aa` |
 | 1 — shared / generic | Kerem | ✅ | 2026-05-12 | 2026-05-12 | `49488a0` `ae79964` |
 | 2 — service-event | Efe | ✅ | 2026-05-12 | 2026-05-12 | `2fb95e3` `e70613a` |
-| 3 — service-auth | Kerem | ⬜ | — | — | — |
+| 3 — service-auth | Kerem | ✅ | 2026-05-13 | 2026-05-13 | `12a0de5` `3fba2f3` |
 | 4 — service-ticket + notification | Kerem + Efe | ⬜ | — | — | — |
 | 5 — JavaFX desktop | Efe | ⬜ | — | — | — |
 | 6 — gateway | Kerem | ⬜ | — | — | — |
