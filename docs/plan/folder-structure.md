@@ -28,27 +28,94 @@ tbl324-event-ticketing/
 │       └── validation/
 │           └── Validator.java         # Generic<T> validator interface
 │
-├── service-auth/                      # 1. mikroservis: kullanıcı + oturum
+├── service-auth/                      # 1. mikroservis: kullanıcı + oturum  ✅ Faz 3
 │   ├── pom.xml
 │   ├── Dockerfile
 │   └── src/
 │       ├── main/java/com/tbl324/auth/
 │       │   ├── AuthApplication.java
-│       │   ├── config/                # SecurityConfig, RedisConfig, JdbcConfig
-│       │   ├── controller/            # AuthController
-│       │   ├── service/               # AuthService, TokenService, PasswordHasher
-│       │   ├── repository/            # UserJdbcRepository, SessionRedisRepository
-│       │   ├── domain/                # User, Session, Role
-│       │   ├── dto/                   # LoginRequest, RegisterRequest, TokenResponse
-│       │   └── exception/             # AuthException
+│       │   ├── config/
+│       │   │   └── RedisConfig.java           # JedisPool (HikariCP benzeri pool)
+│       │   ├── controller/
+│       │   │   └── AuthController.java        # POST /auth/register, /auth/login, /auth/logout
+│       │   ├── service/
+│       │   │   ├── AuthService.java           # register/login/logout iş mantığı
+│       │   │   └── SessionRedisRepository.java # session:{id}→userId, revoked:{id} denylist
+│       │   ├── security/
+│       │   │   ├── PasswordHasher.java        # BCryptPasswordEncoder wrapper
+│       │   │   └── TokenService.java          # JJWT 0.12 — generate/parse/expire/sessionId
+│       │   ├── filter/
+│       │   │   └── JwtAuthFilter.java         # OncePerRequestFilter — /auth/login,/register hariç
+│       │   ├── repository/
+│       │   │   ├── BaseJdbcRepository.java    # Faz 2 Template Method kopyası
+│       │   │   └── UserJdbcRepository.java    # findByUsername, existsByUsername/Email
+│       │   ├── domain/
+│       │   │   ├── User.java                  # immutable, explicit Builder
+│       │   │   └── UserRole.java              # enum: USER, ADMIN
+│       │   ├── dto/
+│       │   │   ├── RegisterRequest.java       # @JsonCreator, @NotBlank, @Email, @Size
+│       │   │   ├── LoginRequest.java
+│       │   │   └── LoginResponse.java         # token, userId, username, role
+│       │   └── exception/
+│       │       └── GlobalExceptionHandler.java # 400/401/409/500
 │       ├── main/resources/
 │       │   ├── application.yml
-│       │   └── db/migration/          # Flyway SQL (V1__init.sql)
-│       └── test/java/...              # önce yazılır
+│       │   └── db/migration/
+│       │       ├── V1__init.sql               # roles, users tabloları
+│       │       └── V2__seed.sql               # USER/ADMIN rolleri seed
+│       └── test/java/com/tbl324/auth/
+│           ├── ApplicationContextTest.java    # Testcontainers PG+Redis context yükü
+│           ├── controller/
+│           │   └── AuthControllerTest.java    # register/login/logout/409/401 — 6 test
+│           ├── security/
+│           │   ├── PasswordHasherTest.java    # 4 unit test
+│           │   └── TokenServiceTest.java      # 6 unit test
+│           └── service/
+│               └── SessionRedisRepositoryTest.java # 4 test (Testcontainers Redis)
 │
-├── service-event/                     # 2. mikroservis: etkinlik + salon + koltuk
-│   └── (aynı yapı: controller/service/repository/domain/dto)
-│       # özel: SeatMapRepository (JDBC), event cache (Redis)
+├── service-event/                     # 2. mikroservis: etkinlik + salon + koltuk  ✅ Faz 2
+│   ├── pom.xml
+│   ├── Dockerfile
+│   └── src/
+│       ├── main/java/com/tbl324/event/
+│       │   ├── EventApplication.java
+│       │   ├── controller/
+│       │   │   └── EventController.java       # GET/POST/PUT/DELETE /events, GET /events/{id}/seats
+│       │   ├── service/
+│       │   │   └── EventService.java          # findAll(page,size), findById, create, update, delete, findSeatsByEventId
+│       │   ├── repository/
+│       │   │   ├── BaseJdbcRepository.java    # abstract Template Method — saf JDBC (Connection+PreparedStatement)
+│       │   │   ├── EventJdbcRepository.java
+│       │   │   ├── VenueJdbcRepository.java
+│       │   │   └── SeatJdbcRepository.java
+│       │   ├── domain/
+│       │   │   ├── Event.java                 # immutable, explicit Builder (Lombok yok)
+│       │   │   ├── Venue.java
+│       │   │   ├── Seat.java
+│       │   │   ├── EventStatus.java           # ACTIVE, CANCELLED, COMPLETED
+│       │   │   └── SeatStatus.java            # AVAILABLE, RESERVED, SOLD
+│       │   ├── dto/
+│       │   │   ├── EventDTO.java
+│       │   │   ├── CreateEventRequest.java    # @NotBlank, @NotNull, @Future validations
+│       │   │   ├── SeatDTO.java
+│       │   │   └── VenueDTO.java
+│       │   ├── mapper/
+│       │   │   └── EventMapper.java           # static utility: toDTO(Event/Seat/Venue), toEntity(CreateEventRequest)
+│       │   └── exception/
+│       │       └── GlobalExceptionHandler.java # @RestControllerAdvice, RFC 7807 ProblemDetail
+│       ├── main/resources/
+│       │   ├── application.yml
+│       │   └── db/migration/
+│       │       ├── V1__init.sql               # venues, events, seats tabloları
+│       │       └── V2__seed.sql               # 2 salon, 2 etkinlik, 500 koltuk (generate_series)
+│       └── test/java/com/tbl324/event/
+│           ├── DockerHostExtension.java
+│           ├── controller/
+│           │   └── EventControllerTest.java   # @WebMvcTest + @MockBean — 8 test
+│           ├── exception/
+│           │   └── GlobalExceptionHandlerTest.java  # 4 test (404/409/400/500)
+│           └── repository/
+│               └── EventRepositoryTest.java   # @Testcontainers PostgreSQL — 7 test
 │
 ├── service-ticket/                    # 3. mikroservis: bilet rezervasyonu + ödeme
 │   └── (aynı yapı)
