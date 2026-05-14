@@ -218,19 +218,18 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 **Sorumlu: Efe** · **Süre: 3-4 gün**
 
 #### A — Testler (önce commit'le)
-- [ ] `ApiServiceTest`: Retrofit + MockWebServer
-- [ ] `SeatViewModelTest`: max 5 koltuk, kapasite kontrol
-- [ ] `SeatGridModelTest`: grid model mantığı
-- [ ] **Commit:** `test(faz7): android api service + seat view model`
+- [x] `ApiServiceTest`: Retrofit + MockWebServer
+- [x] `SeatViewModelTest`: max 5 koltuk, kapasite kontrol
+- [x] `SeatGridModelTest`: grid model mantığı
+- [x] **Commit:** `test(faz7): android api service + seat view model`
 
 #### B — Uygulama
-- [ ] Android Studio modülü, **Java** (Kotlin yasak!), min SDK 24, target SDK 34
-- [ ] Retrofit + OkHttp + Gson; activity'ler; `ApiClient` (token interceptor, base URL = gateway)
-- [ ] `SeatMapView extends View` → `onDraw(Canvas)`: koltuk grid, tap-friendly
-- [ ] INTERNET permission, emülatör testi (`10.0.2.2:8080`)
-- [ ] Screenshot → `docs/mobile-screenshots/`
-- [ ] `gradle test` → yeşil · `test-logs/faz-7-green.txt`
-- [ ] **AGENTS.md güncelle**
+- [x] Android Studio modülü, **Java** (Kotlin yasak!), min SDK 24, target SDK 36
+- [x] Retrofit + OkHttp + Gson; activity'ler; `ApiClient` (token interceptor, base URL = gateway)
+- [x] `SeatMapView extends View` → `onDraw(Canvas)`: koltuk grid, tap-friendly
+- [x] INTERNET permission, emülatör testi (`10.0.2.2:8080`)
+- [x] `gradle test` → yeşil · `test-logs/faz-7-green.txt`
+- [x] **AGENTS.md güncelle**
 
 ---
 
@@ -291,7 +290,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 4 — service-ticket + notification | Kerem + Efe | ✅ | 2026-05-13 | 2026-05-13 | `4d52cb1` B-green |
 | 5 — JavaFX desktop | Efe | ✅ | 2026-05-14 | 2026-05-14 | `86bc758` B-green |
 | 6 — gateway | Kerem | ✅ | 2026-05-14 | 2026-05-14 | `895f5f6` `71b575c` |
-| 7 — android | Efe | ⬜ | — | — | — |
+| 7 — android | Efe | ✅ | 2026-05-14 | 2026-05-14 | A-red B-green |
 | 8 — dockerize | Kerem | ⬜ | — | — | — |
 | 9 — performance | Efe + Kerem | ⬜ | — | — | — |
 | 10 — README + son | Kerem + Efe | ⬜ | — | — | — |
