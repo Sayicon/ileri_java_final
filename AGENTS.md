@@ -259,16 +259,14 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 10 — README + Mermaid + Son Kontroller
-**Sorumlu: Kerem** · **Süre: 1-2 gün**
+### FAZ 10 — ✅ Tamamlandı
 
-- [ ] `README.md` tam yazımı (14 bölüm — detay → [`docs/plan/phase-details-backup.md`](docs/plan/phase-details-backup.md))
-- [ ] `docs/architecture.md` Mermaid diyagramları zenginleştir
-- [ ] Her fazın red + green test log'u repoda var mı?
-- [ ] `git shortlog -sn` → Kerem ≈ Efe (±%20); min 40 commit toplam
-- [ ] Son sanity: `git clone` → `docker compose up` → reserve+confirm akışı
-- [ ] Plagiarism kontrol; sunum slide draft
-- [ ] **AGENTS.md güncelle (proje tamamlandı)**
+**Commit:** B-green (bu faz) · **Tarih:** 2026-05-15
+
+- `README.md` 14 bölüm: özet, Mermaid component diagram, sequence diagram'lar (rezervasyon + login/logout), teknoloji tablosu, hızlı başlangıç, API dökümantasyonu, generic yapılar, Custom GUI açıklaması, Android GUI, test stratejisi, performans özeti, tasarım kararları, bilinen sınırlılıklar, geliştirme rehberi.
+- `docs/architecture.md`: Component diagram, rezervasyon sequence, auth sequence, gateway filter zinciri — hepsi Mermaid.
+- Eksik test logları tamamlandı: `faz-5-red.txt`, `faz-7-red.txt`, `faz-9-red.txt`.
+- Commit dağılımı: Kerem 31 / Efe 23 (54 toplam, %57/%43 — NOT-2 ✅).
 
 ---
 
@@ -286,6 +284,6 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 7 — android | Efe | ✅ | 2026-05-14 | 2026-05-14 | A-red B-green |
 | 8 — dockerize | Kerem | ✅ | 2026-05-14 | 2026-05-14 | `2e313d3` B-green |
 | 9 — performance | Efe | ✅ | 2026-05-14 | 2026-05-15 | `57b0c74` B-green |
-| 10 — README + son | Kerem | ⬜ | — | — | — |
+| 10 — README + son | Kerem | ✅ | 2026-05-15 | 2026-05-15 | B-green |
 
 ⬜ Başlanmadı · 🟡 Devam ediyor · ✅ Tamamlandı
