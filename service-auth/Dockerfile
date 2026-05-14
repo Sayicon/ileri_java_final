@@ -3,6 +3,11 @@ WORKDIR /build
 COPY pom.xml .
 COPY shared/pom.xml shared/
 COPY service-auth/pom.xml service-auth/
+COPY service-event/pom.xml service-event/
+COPY service-ticket/pom.xml service-ticket/
+COPY service-notification/pom.xml service-notification/
+COPY gateway/pom.xml gateway/
+COPY desktop-gui/pom.xml desktop-gui/
 RUN mvn -pl shared,service-auth -am dependency:go-offline -q 2>/dev/null || true
 COPY shared/src shared/src
 COPY service-auth/src service-auth/src
