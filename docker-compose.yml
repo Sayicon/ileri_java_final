@@ -1,0 +1,192 @@
+services:
+
+  # ── Databases ────────────────────────────────────────────────────────────────
+
+  postgres-auth:
+    image: postgres:16.3-alpine
+    environment:
+      POSTGRES_DB: authdb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata-auth:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d authdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-event:
+    image: postgres:16.3-alpine
+    environment:
+      POSTGRES_DB: eventdb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata-event:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d eventdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-ticket:
+    image: postgres:16.3-alpine
+    environment:
+      POSTGRES_DB: ticketdb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata-ticket:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ticketdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-notification:
+    image: postgres:16.3-alpine
+    environment:
+      POSTGRES_DB: notificationdb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata-notification:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d notificationdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.2-alpine
+    volumes:
+      - redisdata:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Microservices ─────────────────────────────────────────────────────────────
+
+  service-auth:
+    build:
+      context: .
+      dockerfile: service-auth/Dockerfile
+    environment:
+      DB_URL: jdbc:postgresql://postgres-auth:5432/authdb
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - backend
+
+  service-event:
+    build:
+      context: .
+      dockerfile: service-event/Dockerfile
+    environment:
+      DB_URL: jdbc:postgresql://postgres-event:5432/eventdb
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      postgres-event:
+        condition: service_healthy
+    networks:
+      - backend
+
+  service-notification:
+    build:
+      context: .
+      dockerfile: service-notification/Dockerfile
+    environment:
+      DB_URL: jdbc:postgresql://postgres-notification:5432/notificationdb
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      postgres-notification:
+        condition: service_healthy
+    networks:
+      - backend
+
+  service-ticket:
+    build:
+      context: .
+      dockerfile: service-ticket/Dockerfile
+    environment:
+      DB_URL: jdbc:postgresql://postgres-ticket:5432/ticketdb
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      EVENT_SERVICE_URL: http://service-event:8082
+      NOTIFICATION_SERVICE_URL: http://service-notification:8084
+    depends_on:
+      postgres-ticket:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      service-event:
+        condition: service_started
+      service-notification:
+        condition: service_started
+    networks:
+      - backend
+
+  # ── Gateway (tek dış port: 8080) ──────────────────────────────────────────────
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      AUTH_SERVICE_URL: http://service-auth:8081
+      EVENT_SERVICE_URL: http://service-event:8082
+      TICKET_SERVICE_URL: http://service-ticket:8083
+      NOTIFICATION_SERVICE_URL: http://service-notification:8084
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      redis:
+        condition: service_healthy
+      service-auth:
+        condition: service_started
+      service-event:
+        condition: service_started
+      service-ticket:
+        condition: service_started
+      service-notification:
+        condition: service_started
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  pgdata-auth:
+  pgdata-event:
+  pgdata-ticket:
+  pgdata-notification:
+  redisdata:

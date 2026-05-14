@@ -233,25 +233,22 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 8 — Dockerize: Tüm Stack Tek Komutla
-**Sorumlu: Kerem** · **Süre: 1-2 gün**
+### FAZ 8 — ✅ Tamamlandı
 
-#### A — Testler (önce commit'le)
-- [ ] `test_docker_compose_smoke.sh`: `docker compose up -d` → 60 sn → `/actuator/health` 200; `GET /api/events` → 200; `docker compose down` temiz
-- [ ] **Commit:** `test(faz8): docker compose smoke + health checks`
+**Commits:** `2e313d3` (A-red) · B-green (bu faz) · **Tarih:** 2026-05-14
 
-#### B — Uygulama
-- [ ] Her servis multi-stage Dockerfile (< 250MB)
-- [ ] `docker-compose.yml`: postgres:16.3-alpine (4 DB) + redis:7.2-alpine + 4 service + gateway; tek bridge network, sadece 8080 dışa
-- [ ] `application-docker.yml` profili, `.env` + `.env.example`, `wait-for-it.sh`, `Makefile`
-- [ ] README "Hızlı başlangıç" bölümü
-- [ ] `test-logs/faz-8-green.txt`
-- [ ] **AGENTS.md güncelle**
+- 5 servis için multi-stage Dockerfile (maven:3.9-eclipse-temurin-21-alpine builder → eclipse-temurin:21-jre-alpine runtime).
+- `docker-compose.yml`: 4 PostgreSQL (16.3-alpine) + Redis (7.2-alpine) + 4 servis + gateway; tek `backend` bridge network, yalnızca 8080 dışa açık; healthcheck ile bağımlılık sırası.
+- `.env` + `.env.example`: POSTGRES_USER/PASSWORD + JWT_SECRET (`.env` gitignore'da).
+- `scripts/wait-for-it.sh`: host:port hazır olana kadar bekler.
+- `Makefile`: up/down/build/logs/ps/clean/smoke hedefleri.
+- README "Hızlı Başlangıç" bölümü: `cp .env.example .env` → `make build && make up`.
+- `test-logs/faz-8-green.txt`.
 
 ---
 
 ### FAZ 9 — Performans Testleri (k6 + JMeter)
-**Sorumlu: Efe (script) + Kerem (rapor)** · **Süre: 2 gün**
+**Sorumlu: Efe** · **Süre: 2 gün**
 
 #### A — Senaryolar (önce commit'le)
 - [ ] `load-test.js` (50 VU, 5 dk, mixed), `stress-test.js` (10→500 VU, kırılma), `spike-test.js` (10→200→10 VU), `soak-test.js` (30 VU, 30 dk)
@@ -267,7 +264,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 ---
 
 ### FAZ 10 — README + Mermaid + Son Kontroller
-**Sorumlu: Kerem + Efe** · **Süre: 1-2 gün**
+**Sorumlu: Kerem** · **Süre: 1-2 gün**
 
 - [ ] `README.md` tam yazımı (14 bölüm — detay → [`docs/plan/phase-details-backup.md`](docs/plan/phase-details-backup.md))
 - [ ] `docs/architecture.md` Mermaid diyagramları zenginleştir
@@ -291,8 +288,8 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 5 — JavaFX desktop | Efe | ✅ | 2026-05-14 | 2026-05-14 | `86bc758` B-green |
 | 6 — gateway | Kerem | ✅ | 2026-05-14 | 2026-05-14 | `895f5f6` `71b575c` |
 | 7 — android | Efe | ✅ | 2026-05-14 | 2026-05-14 | A-red B-green |
-| 8 — dockerize | Kerem | ⬜ | — | — | — |
-| 9 — performance | Efe + Kerem | ⬜ | — | — | — |
-| 10 — README + son | Kerem + Efe | ⬜ | — | — | — |
+| 8 — dockerize | Kerem | ✅ | 2026-05-14 | 2026-05-14 | `2e313d3` B-green |
+| 9 — performance | Efe | ⬜ | — | — | — |
+| 10 — README + son | Kerem | ⬜ | — | — | — |
 
 ⬜ Başlanmadı · 🟡 Devam ediyor · ✅ Tamamlandı

@@ -1,5 +1,15 @@
-# Faz 8'de doldurulacak — multi-stage build
+FROM maven:3.9-eclipse-temurin-21-alpine AS builder
+WORKDIR /build
+COPY pom.xml .
+COPY shared/pom.xml shared/
+COPY service-event/pom.xml service-event/
+RUN mvn -pl shared,service-event -am dependency:go-offline -q 2>/dev/null || true
+COPY shared/src shared/src
+COPY service-event/src service-event/src
+RUN mvn -pl service-event -am -DskipTests package -q
+
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY target/*.jar app.jar
+COPY --from=builder /build/service-event/target/*.jar app.jar
+EXPOSE 8082
 ENTRYPOINT ["java", "-jar", "app.jar"]
