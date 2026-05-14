@@ -17,7 +17,6 @@ export const options = {
         { duration: '2m',  target: 0   }, // ramp-down
     ],
     thresholds: {
-        // Mark as failure only if 99th percentile exceeds 2 s — we expect degradation.
         http_req_duration: ['p(99)<2000'],
     },
 };
@@ -25,7 +24,6 @@ export const options = {
 const BASE = __ENV.BASE_URL || 'http://localhost:8080';
 
 export default function () {
-    // Lightweight: only event listing (read-only, no auth needed for stress probe)
     const r = http.get(`${BASE}/api/events`);
     check(r, { 'events ok': res => res.status === 200 });
     errorRate.add(r.status !== 200);

@@ -18,11 +18,12 @@ export const options = {
     },
 };
 
-const BASE = __ENV.BASE_URL || 'http://localhost:8080';
+const BASE  = __ENV.BASE_URL || 'http://localhost:8080';
+const CREDS = { username: 'testuser', password: 'testpass123' };
 
 function login() {
     const res = http.post(`${BASE}/api/auth/login`,
-        JSON.stringify({ username: 'user1', password: 'pass1' }),
+        JSON.stringify(CREDS),
         { headers: { 'Content-Type': 'application/json' } });
     return res.status === 200 ? res.json('token') : null;
 }
