@@ -1,0 +1,18 @@
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[ERROR] COMPILATION ERROR
+[ERROR] /desktop-gui/src/test/java/.../ApiClientTest.java:[8,35] cannot find symbol
+  symbol:   class ApiClient
+  location: package com.tbl324.desktop.client
+[ERROR] /desktop-gui/src/test/java/.../SeatGridTest.java:[6,33] cannot find symbol
+  symbol:   class SeatGrid
+  location: package com.tbl324.desktop.model
+[ERROR] /desktop-gui/src/test/java/.../SeatColorMapperTest.java:[6,38] cannot find symbol
+  symbol:   class SeatColorMapper
+  location: package com.tbl324.desktop.model
+[INFO] 3 errors
+[INFO] BUILD FAILURE
+[INFO] Total time: 4.231 s
+
+RED state — Faz 5 A commit (TDD): uygulama sinifları henüz yazılmadı

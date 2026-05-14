@@ -1,0 +1,10 @@
+[FAZ-9 RED] k6 script dosyaları mevcut degil
+bash: perf-tests/load-test.js: No such file or directory
+bash: perf-tests/stress-test.js: No such file or directory
+bash: perf-tests/spike-test.js: No such file or directory
+bash: perf-tests/soak-test.js: No such file or directory
+bash: perf-tests/event-ticketing.jmx: No such file or directory
+scripts/run-perf.sh: line 12: perf-tests/load-test.js: not found
+exit status 1
+
+RED state — Faz 9 A commit (TDD): k6/JMeter senaryoları henüz yazılmadı

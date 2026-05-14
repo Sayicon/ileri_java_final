@@ -1,0 +1,22 @@
+Task :app:testDebugUnitTest FAILED
+> Task :app:compileDebugUnitTestJavac FAILED
+
+error: cannot find symbol
+  symbol:   class ApiService
+  location: package com.tbl324.mobile.api
+/app/src/test/java/.../ApiServiceTest.java:12: error: cannot find symbol
+
+error: cannot find symbol
+  symbol:   class SeatGridModel
+  location: package com.tbl324.mobile.model
+/app/src/test/java/.../SeatGridModelTest.java:9: error: cannot find symbol
+
+error: cannot find symbol
+  symbol:   class SeatViewModel
+  location: package com.tbl324.mobile.viewmodel
+/app/src/test/java/.../SeatViewModelTest.java:8: error: cannot find symbol
+
+3 errors
+BUILD FAILED in 6s
+
+RED state — Faz 7 A commit (TDD): Android uygulama sinifları henüz yazılmadı
