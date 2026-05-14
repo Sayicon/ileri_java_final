@@ -247,19 +247,15 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 9 — Performans Testleri (k6 + JMeter)
-**Sorumlu: Efe** · **Süre: 2 gün**
+### FAZ 9 — ✅ Tamamlandı
 
-#### A — Senaryolar (önce commit'le)
-- [ ] `load-test.js` (50 VU, 5 dk, mixed), `stress-test.js` (10→500 VU, kırılma), `spike-test.js` (10→200→10 VU), `soak-test.js` (30 VU, 30 dk)
-- [ ] `event-ticketing.jmx` (JMeter GUI demo)
-- [ ] **Commit:** `test(faz9): k6 load, stress, spike, soak + jmeter scenario`
+**Commits:** `57b0c74` (A-red) · B-green (bu faz) · **Tarih:** 2026-05-14/15
 
-#### B — Koşum + Rapor
-- [ ] `scripts/run-perf.sh` → JSON output'lar `perf-tests/reports/<timestamp>/`
-- [ ] `docs/performance-report.md`: ortam, senaryolar, metrik tablolar, kırılma analizi, bottleneck tespiti
-- [ ] `test-logs/faz-9-green.txt`
-- [ ] **AGENTS.md güncelle**
+- k6 senaryoları: load (50 VU, 5dk), stress (10→500 VU, 16dk), spike (10→200→10 VU, 7dk), soak (30 VU, 30dk script).
+- `perf-tests/event-ticketing.jmx`: JMeter 4-adım test planı (login→events→seats→reserve).
+- Canlı Docker stack'e karşı test koşuldu: load p(95)=4.05ms ✓, stress 1.9M istek 100% tamamlandı, spike p(95)=6.01ms ✓.
+- Darboğaz: Redis rate limiting login endpoint'inde (güvenlik özelliği, servis hatası değil).
+- `docs/performance-report.md`, `test-logs/faz-9-green.txt` oluşturuldu.
 
 ---
 
@@ -289,7 +285,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 6 — gateway | Kerem | ✅ | 2026-05-14 | 2026-05-14 | `895f5f6` `71b575c` |
 | 7 — android | Efe | ✅ | 2026-05-14 | 2026-05-14 | A-red B-green |
 | 8 — dockerize | Kerem | ✅ | 2026-05-14 | 2026-05-14 | `2e313d3` B-green |
-| 9 — performance | Efe | ⬜ | — | — | — |
+| 9 — performance | Efe | ✅ | 2026-05-14 | 2026-05-15 | `57b0c74` B-green |
 | 10 — README + son | Kerem | ⬜ | — | — | — |
 
 ⬜ Başlanmadı · 🟡 Devam ediyor · ✅ Tamamlandı

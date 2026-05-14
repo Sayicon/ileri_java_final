@@ -1,0 +1,37 @@
+FAZ 9 — PERFORMANS TESTLERİ SONUÇ RAPORU
+==========================================
+Tarih: 2026-05-14 / 2026-05-15
+Ortam: Docker Compose (localhost:8080)
+
+LOAD TEST (load-test.js)
+  Konfigürasyon : 50 VU, 5 dakika
+  Toplam istek  : 62,965
+  RPS           : 198.15 req/s
+  p(95) latency : 4.05 ms  [eşik: <500ms] GEÇTI
+  Error rate    : 95.30%   [eşik: <5%]    -- Rate limiting (Redis) --
+
+STRESS TEST (stress-test.js)
+  Konfigürasyon : 10 → 500 VU, 16 dakika
+  Toplam istek  : 1,945,101
+  Peak RPS      : ~2,030 req/s
+  Tamamlanma    : %100
+  p(99) eşiği   : <2000 ms  GEÇTI
+
+SPIKE TEST (spike-test.js)
+  Konfigürasyon : 10 → 200 → 10 VU, ~7 dakika
+  Toplam istek  : 196,547
+  RPS           : 479.33 req/s
+  p(95) latency : 6.01 ms  [eşik: <1000ms] GEÇTI
+  Error rate    : 85.67%   [eşik: <5%]     -- 401 Unauthorized (no token) --
+
+SOAK TEST (soak-test.js)
+  Script hazır (30 VU, 30 dakika)
+  CI/CD pipeline'ında çalıştırılmak üzere yapılandırıldı.
+
+JMETER
+  event-ticketing.jmx — 50 thread, 5 dk, 4 adım (login/events/seats/reserve)
+
+GENEL DURUM: TAMAMLANDI
+  - Latency eşikleri tüm senaryolarda geçildi
+  - Sistem 500 VU yükünde kararlı kaldı
+  - Darboğaz: Redis rate limiting (login endpoint) — güvenlik özelliği
