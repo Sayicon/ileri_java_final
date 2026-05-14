@@ -24,6 +24,48 @@ android {
             minifyEnabled false
         }
     }
+
+    testOptions {
+        unitTests {
+            all {
+                jvmArgs '-Dfile.encoding=UTF-8'
+                systemProperty 'file.encoding', 'UTF-8'
+            }
+        }
+    }
+}
+
+// Bundle test/app classes into JARs in system temp to avoid non-ASCII path issues on Windows
+def tmpDir = new File(System.getProperty('java.io.tmpdir'), 'tbl324')
+tmpDir.mkdirs()
+def testClassesJar  = new File(tmpDir, 'test-classes.jar')
+def appClassesJar   = new File(tmpDir, 'app-classes.jar')
+
+tasks.register('bundleUnitTestClassesToJar', Jar) {
+    dependsOn 'compileDebugUnitTestJavaWithJavac'
+    from("${buildDir}/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes")
+    archiveFile.set(testClassesJar)
+}
+
+tasks.register('bundleAppClassesToTempJar', Copy) {
+    dependsOn 'bundleDebugClassesToCompileJar'
+    from("${buildDir}/intermediates/compile_app_classes_jar/debug/bundleDebugClassesToCompileJar/classes.jar")
+    into(tmpDir)
+    rename { 'app-classes.jar' }
+}
+
+tasks.withType(Test).configureEach {
+    dependsOn 'bundleUnitTestClassesToJar', 'bundleAppClassesToTempJar'
+    doFirst {
+        def testClassesDir = file("${buildDir}/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes")
+        def appJarInBuild  = file("${buildDir}/intermediates/compile_app_classes_jar/debug/bundleDebugClassesToCompileJar/classes.jar")
+        classpath = classpath
+            .filter { f ->
+                f.canonicalPath != testClassesDir.canonicalPath &&
+                f.canonicalPath != appJarInBuild.canonicalPath
+            }
+            .plus(files(testClassesJar, appClassesJar))
+    }
 }
 
 dependencies {
