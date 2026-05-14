@@ -1,0 +1,37 @@
+[FAZ-8 SMOKE] docker compose up --build -d ...
+[+] Building service-auth        ... done
+[+] Building service-event       ... done
+[+] Building service-notification ... done
+[+] Building service-ticket      ... done
+[+] Building gateway             ... done
+[+] Running 11/11
+ ✔ Network backend                   Created
+ ✔ Container postgres-auth           Healthy
+ ✔ Container postgres-event          Healthy
+ ✔ Container postgres-ticket         Healthy
+ ✔ Container postgres-notification   Healthy
+ ✔ Container redis                   Healthy
+ ✔ Container service-auth            Started
+ ✔ Container service-event           Started
+ ✔ Container service-notification    Started
+ ✔ Container service-ticket          Started
+ ✔ Container gateway                 Started
+[FAZ-8 SMOKE] Servisler ayaga kalkiyor (120s bekleniyor)...
+[FAZ-8 SMOKE] Gateway health check...
+OK: /actuator/health -> 200
+[FAZ-8 SMOKE] GET /api/events check...
+OK: GET /api/events -> 200
+[FAZ-8 SMOKE] docker compose down...
+[+] Running 11/11
+ ✔ Container gateway                 Removed
+ ✔ Container service-ticket          Removed
+ ✔ Container service-notification    Removed
+ ✔ Container service-event           Removed
+ ✔ Container service-auth            Removed
+ ✔ Container redis                   Removed
+ ✔ Container postgres-notification   Removed
+ ✔ Container postgres-ticket         Removed
+ ✔ Container postgres-event          Removed
+ ✔ Container postgres-auth           Removed
+ ✔ Network backend                   Removed
+[FAZ-8 SMOKE] TUM KONTROLLER GECTI

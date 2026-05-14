@@ -3,9 +3,12 @@
 ```
 tbl324-event-ticketing/
 ├── AGENTS.md                          # bu dosya
-├── README.md                          # final rapor (Faz 10'da doldurulur)
+├── README.md                          # Hızlı Başlangıç + proje özeti
 ├── DECISIONS.md                       # tasarım kararları, savunma notları
-├── docker-compose.yml                 # tüm stack (Faz 8)
+├── docker-compose.yml                 # tüm stack  ✅ Faz 8
+├── Makefile                           # up/down/build/logs/ps/clean/smoke  ✅ Faz 8
+├── .env.example                       # ortam değişkenleri şablonu  ✅ Faz 8
+├── .env                               # gerçek değerler (.gitignore'da)
 ├── pom.xml                            # parent POM (multi-module)
 ├── .gitignore
 ├── .github/workflows/                 # opsiyonel CI
@@ -198,7 +201,8 @@ tbl324-event-ticketing/
 │   └── performance-report.md          # Faz 9 çıktısı
 │
 └── scripts/
+    ├── wait-for-it.sh                 # host:port hazir olana kadar bekler  ✅ Faz 8
+    ├── test_docker_compose_smoke.sh   # smoke test: up → health → events → down  ✅ Faz 8
     ├── seed-data.sql                  # demo verisi (etkinlik, salon, kullanıcı)
-    ├── wait-for-it.sh                 # docker-compose health check
     └── run-perf.sh                    # k6 + report üretimi
 ```
