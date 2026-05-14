@@ -1,0 +1,6 @@
+[FAZ-8 SMOKE] docker compose up --build -d ...
+no configuration file provided: not found
+exit status 14
+
+FAIL: docker-compose.yml henuz olusturulmadi — RED state (TDD A commit)
+test_docker_compose_smoke.sh:6: docker compose up --build -d: command failed
