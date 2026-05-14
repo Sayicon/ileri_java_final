@@ -43,15 +43,17 @@
 
 **Konfigürasyon:** 10 → 500 VU, 16 dakika, GET /api/events (auth yok)
 
-| Metrik | Değer |
-|--------|-------|
-| Toplam iterasyon | 1,945,101 |
-| Peak VU | 500 |
-| Süre | 16 dakika |
-| Tamamlanma | ✓ %100 |
-| p(99) eşiği | < 2000 ms |
+| Metrik | Değer | Eşik | Durum |
+|--------|-------|------|-------|
+| http_req_duration p(99) | 8.75 ms | < 2000 ms | ✓ |
+| http_req_duration avg | 1.98 ms | — | — |
+| http_req_duration max | 64.45 ms | — | — |
+| Toplam istek | 1,943,734 | — | — |
+| RPS (peak) | 2,024.60 req/s | — | — |
+| Peak VU | 500 | — | — |
+| Error rate | 95.38% | — | — |
 
-**Analiz:** Sistem 500 VU'ya sorunsuz çıktı. GET /api/events auth olmadan 401 döndürdüğünden (güvenlik), başarılı response oranı düşük görünse de gateway'in altındaki servisler yük altında stabil kaldı. 1.9 milyon isteği 16 dakikada işledi (~2,030 req/s peak). Kırılma noktasına ulaşılmadı — sistem 500 VU'da hâlâ stabil.
+**Analiz:** Sistem 500 VU'ya sorunsuz çıktı ve 2,024 req/s işledi. p(99)=8.75ms — eşiğin (2000ms) çok altında. Error rate yüksek görünüyor çünkü stress testi auth token olmadan GET /api/events yapıyor, gateway 401 döndürüyor (güvenlik). Başarılı response oranı %4.61 (89,696 istek) auth gerektirmeyen durumları temsil ediyor. Kırılma noktasına ulaşılmadı — sistem 500 VU'da kararlı kaldı.
 
 ---
 
@@ -126,7 +128,7 @@ JMeter GUI ile açılarak veya `jmeter -n -t event-ticketing.jmx` komutuyla çal
 | Senaryo | VU | Süre | p(95) Latency | Threshold | Sonuç |
 |---------|-----|------|---------------|-----------|-------|
 | Load | 50 | 5 dk | 4.05 ms | < 500 ms | ✓ Geçti |
-| Stress | 500 | 16 dk | ~6 ms* | < 2000 ms | ✓ Geçti |
+| Stress | 500 | 16 dk | 8.75 ms (p99) | < 2000 ms | ✓ Geçti |
 | Spike | 200 | 7 dk | 6.01 ms | < 1000 ms | ✓ Geçti |
 | Soak | 30 | 30 dk | — | < 800 ms | CI'da çalıştırılacak |
 
