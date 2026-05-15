@@ -270,6 +270,117 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
+---
+
+### FAZ 11 — Biletlerim (Backend + Desktop + Android)
+
+**Sorumlu: Efe** · **Hedef: Sunumda "rezervasyon çalışıyor" kanıtı**
+
+**Sorun:** Rezervasyon yapılıyor ama kullanıcı biletini hiç göremiyór. Sistemin işe yaradığını kanıtlayacak tek ekran eksik.
+
+#### A — Testler (önce commit'le)
+- [ ] `service-ticket`: `TicketController` GET `/tickets/my` endpoint testi — JWT userId ile filtrele
+- [ ] `service-ticket`: `TicketJdbcRepository.findByUserId(Long)` testi
+- [ ] `desktop-gui`: `ApiClientTest` — getMyTickets mock testi
+- [ ] **Commit:** `test(faz11): biletlerim endpoint ve desktop api client testleri`
+
+#### B — Uygulama
+
+**service-ticket:**
+- [ ] `TicketJdbcRepository`: `findByUserId(Long userId)` metodu ekle — `SELECT * FROM tickets WHERE user_id = ?`
+- [ ] `TicketService`: `getMyTickets(Long userId)` metodu
+- [ ] `TicketController`: `GET /tickets/my` — Authorization header'dan JWT'yi parse et, userId'yi al, ticket listesi dön
+- [ ] `TicketDTO`: `id`, `eventId`, `seatId`, `userId`, `status`, `paymentType` alanları tam olsun
+
+**desktop-gui:**
+- [ ] `ApiClient`: `getMyTickets()` metodu ekle
+- [ ] `MyTicketsView` (JavaFX): TableView — Bilet No / Etkinlik ID / Koltuk / Durum / Ödeme
+- [ ] `EventListView`'e "Biletlerim" butonu ekle → `MyTicketsView`'e geç
+- [ ] "Geri" butonu → etkinlik listesine dön
+
+**android-mobile:**
+- [ ] `MyTicketsActivity`: RecyclerView yerine LinearLayout kart listesi (Faz 7 pattern'ı)
+- [ ] `ApiService`: `GET /api/tickets/my` endpoint ekle
+- [ ] `TicketItem` model sınıfı: `id`, `eventId`, `seatId`, `status`, `paymentType`
+- [ ] `TicketsResponse` wrapper sınıfı (EventsResponse pattern'ı)
+- [ ] `EventListActivity`'ye "Biletlerim" butonu ekle
+- [ ] `AndroidManifest.xml`'e `MyTicketsActivity` ekle
+
+- [ ] `gradle test` → yeşil · `test-logs/faz-11-green.txt`
+- [ ] **Commit:** `feat(faz11): biletlerim sayfası — backend endpoint, desktop ve android`
+- [ ] **AGENTS.md güncelle**
+
+---
+
+### FAZ 12 — Rezervasyon → Ödeme → Onay Akışı
+
+**Sorumlu: Efe** · **Hedef: Tam biletleme döngüsü — reserve → confirm**
+
+**Sorun:** Backend'de `POST /tickets/{id}/confirm` var (PaymentType: CASH/CREDIT_CARD) ama hiç çağrılmıyor. Rezervasyon RESERVED'da kalıyor, CONFIRMED'a geçmiyor. Ödeme adımı olmadan uygulama yarım.
+
+#### A — Testler (önce commit'le)
+- [ ] `desktop-gui`: `ApiClientTest` — `confirmTicket(ticketId, paymentType)` mock testi
+- [ ] **Commit:** `test(faz12): ticket confirm akışı api client testleri`
+
+#### B — Uygulama
+
+**desktop-gui:**
+- [ ] `ApiClient`: `confirmTicket(Long ticketId, String paymentType)` ekle — `POST /tickets/{id}/confirm`
+- [ ] `ApiClient.reserve()` → ticketId dönsün (şu an void)
+- [ ] `SeatMapView`: Rezervasyon sonrası ödeme dialog'u:
+  - Alert/Dialog: "Ödeme Yöntemi Seçin" → [Nakit] [Kredi Kartı] [İptal]
+  - Seçim sonrası `confirmTicket()` çağır
+  - Başarıda: "✓ Biletiniz onaylandı!" mesajı, koltuklar SOLD rengine döner
+- [ ] `ApiClient.reserve()` dönüş tipi `TicketDTO` olsun (ticketId için)
+
+**android-mobile:**
+- [ ] `ApiService`: `confirmTicket` ve `reserveWithResponse` endpoint'leri (Call<TicketResponse>)
+- [ ] `TicketResponse` wrapper sınıfı
+- [ ] `SeatMapActivity.reserve()`: rezervasyon sonrası ödeme seçim dialog'u (AlertDialog)
+  - "Nakit" / "Kredi Kartı" seçenekleri
+  - Seçim → confirm çağır → "Bilet onaylandı!" Toast
+
+- [ ] `gradle test` → yeşil · `test-logs/faz-12-green.txt`
+- [ ] **Commit:** `feat(faz12): reserve → ödeme seçimi → confirm akışı desktop ve android`
+- [ ] **AGENTS.md güncelle**
+
+---
+
+### FAZ 13 — Admin Paneli (Desktop GUI)
+
+**Sorumlu: Efe** · **Hedef: Sunumda "admin etkinlik ekler → kullanıcı görür" demo akışı**
+
+**Sorun:** Sistemde 2 hardcoded etkinlik var. Demo'da "yeni etkinlik oluşturuldu" gösterilemiyor. Admin role'ü var ama hiç kullanılmıyor.
+
+#### A — Testler (önce commit'le)
+- [ ] `desktop-gui`: `ApiClientTest` — `createEvent()`, `getAllTickets()` mock testleri
+- [ ] **Commit:** `test(faz13): admin panel api client testleri`
+
+#### B — Uygulama
+
+**service-ticket:**
+- [ ] `TicketController`: `GET /tickets` (admin only) — tüm biletleri dön, Authorization kontrolü yap
+
+**desktop-gui:**
+- [ ] `ApiClient`: `createEvent(title, description, venueId)` → `POST /api/events`
+- [ ] `ApiClient`: `getAllTickets()` → `GET /api/tickets` (admin)
+- [ ] `DesktopApp.showLogin()`: login sonrası role'e göre yönlendirme:
+  - `USER` → mevcut EventListView
+  - `ADMIN` → yeni AdminDashboardView
+- [ ] `AdminDashboardView` (JavaFX, BorderPane):
+  - **Sol panel:** "Etkinlikler" / "Tüm Rezervasyonlar" menüsü
+  - **Etkinlikler tab'ı:** Mevcut etkinlik listesi (TableView) + "Yeni Etkinlik" butonu → form dialog (başlık, açıklama, salon ID, tarih)
+  - **Tüm Rezervasyonlar tab'ı:** Bilet listesi (TableView) — Bilet No / Kullanıcı ID / Etkinlik / Koltuk / Durum
+- [ ] `ApiClient.login()`: response'dan `role` alanını da al ve sakla
+
+**Not:** `admin1` / `password123` seed data'da mevcut (Faz 3 Flyway migration'ı).
+
+- [ ] `gradle test` → yeşil · `test-logs/faz-13-green.txt`
+- [ ] **Commit:** `feat(faz13): admin paneli — etkinlik yönetimi ve rezervasyon listesi`
+- [ ] **AGENTS.md güncelle**
+
+---
+
 ## Faz Durum Özeti
 
 | Faz | Sorumlu | Durum | Başlangıç | Bitiş | Commit(ler) |
@@ -285,5 +396,8 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 8 — dockerize | Kerem | ✅ | 2026-05-14 | 2026-05-14 | `2e313d3` B-green |
 | 9 — performance | Efe | ✅ | 2026-05-14 | 2026-05-15 | `57b0c74` B-green |
 | 10 — README + son | Kerem | ✅ | 2026-05-15 | 2026-05-15 | B-green |
+| 11 — Biletlerim | Efe | ⬜ | — | — | — |
+| 12 — Ödeme akışı | Efe | ⬜ | — | — | — |
+| 13 — Admin paneli | Efe | ⬜ | — | — | — |
 
 ⬜ Başlanmadı · 🟡 Devam ediyor · ✅ Tamamlandı
