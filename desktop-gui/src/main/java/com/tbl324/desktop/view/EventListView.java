@@ -20,18 +20,20 @@ public class EventListView extends BorderPane {
     private final String username;
     private final BiConsumer<EventDTO, Long> onEventSelected;
     private final Runnable onMyTickets;
+    private final Runnable onLogout;
 
     private final ListView<EventDTO> listView    = new ListView<>();
     private final Label              statusLabel = new Label("Yükleniyor...");
 
     public EventListView(ApiClient apiClient, Long userId, String username,
                          BiConsumer<EventDTO, Long> onEventSelected,
-                         Runnable onMyTickets) {
+                         Runnable onMyTickets, Runnable onLogout) {
         this.apiClient       = apiClient;
         this.userId          = userId;
         this.username        = username;
         this.onEventSelected = onEventSelected;
         this.onMyTickets     = onMyTickets;
+        this.onLogout        = onLogout;
         buildUi();
         loadEvents();
     }
@@ -49,7 +51,16 @@ public class EventListView extends BorderPane {
         userLabel.getStyleClass().add("header-sub");
         userLabel.setStyle("-fx-text-fill: rgba(255,255,255,0.85); -fx-font-size: 13px;");
 
-        header.getChildren().addAll(title, userLabel);
+        Button logoutBtn = new Button("Çıkış");
+        logoutBtn.getStyleClass().add("btn-ghost");
+        logoutBtn.setOnAction(e -> {
+            Thread.ofVirtual().start(() -> {
+                try { apiClient.logout(); } catch (Exception ignored) {}
+                javafx.application.Platform.runLater(onLogout);
+            });
+        });
+
+        header.getChildren().addAll(title, userLabel, logoutBtn);
 
         // ── List with custom cells ──────────────────────────────────────────
         listView.getStyleClass().add("list-view");

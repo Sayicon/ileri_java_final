@@ -73,7 +73,8 @@ public class DesktopApp extends Application {
         EventListView eventList = new EventListView(
                 apiClient, currentUserId, currentUsername,
                 (event, userId) -> showSeatMap(event.id(), event.title(), userId),
-                this::showMyTickets);
+                this::showMyTickets,
+                this::showLogin);
         primaryStage.setScene(makeScene(eventList));
     }
 
@@ -90,7 +91,7 @@ public class DesktopApp extends Application {
     }
 
     private void showAdminDashboard() {
-        AdminDashboardView admin = new AdminDashboardView(apiClient);
+        AdminDashboardView admin = new AdminDashboardView(apiClient, this::showLogin);
         primaryStage.setScene(makeScene(admin));
     }
 

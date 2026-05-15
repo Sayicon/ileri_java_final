@@ -137,6 +137,18 @@ public class ApiClient {
         sendJson(req);
     }
 
+    public void logout() throws ApiException {
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/api/auth/logout"))
+                .header("Authorization", "Bearer " + token)
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+        sendVoid(req);
+        this.token  = null;
+        this.userId = null;
+        this.role   = null;
+    }
+
     private JsonNode sendJson(HttpRequest req) throws ApiException {
         try {
             HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());

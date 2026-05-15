@@ -20,23 +20,38 @@ import java.util.Optional;
 public class AdminDashboardView extends BorderPane {
 
     private final ApiClient apiClient;
+    private final Runnable  onLogout;
 
-    public AdminDashboardView(ApiClient apiClient) {
+    public AdminDashboardView(ApiClient apiClient, Runnable onLogout) {
         this.apiClient = apiClient;
+        this.onLogout  = onLogout;
         buildUi();
     }
 
     private void buildUi() {
         Label title = new Label("Admin Paneli");
-        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: white;"
-                + "-fx-background-color: #1565C0; -fx-padding: 16px;");
+        title.getStyleClass().add("header-title");
         title.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(title, Priority.ALWAYS);
+
+        Button logoutBtn = new Button("Çıkış");
+        logoutBtn.getStyleClass().add("btn-ghost");
+        logoutBtn.setOnAction(e -> {
+            Thread.ofVirtual().start(() -> {
+                try { apiClient.logout(); } catch (Exception ignored) {}
+                javafx.application.Platform.runLater(onLogout);
+            });
+        });
+
+        HBox header = new HBox(title, logoutBtn);
+        header.getStyleClass().add("header-bar");
+        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
         TabPane tabs = new TabPane();
         tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         tabs.getTabs().addAll(buildEventsTab(), buildTicketsTab());
 
-        setTop(title);
+        setTop(header);
         setCenter(tabs);
         setPadding(new Insets(0));
     }
