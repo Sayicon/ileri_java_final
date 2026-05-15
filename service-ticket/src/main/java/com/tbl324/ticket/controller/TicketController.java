@@ -20,6 +20,11 @@ public class TicketController {
         this.ticketService = ticketService;
     }
 
+    @GetMapping
+    public List<TicketDTO> getAllTickets() {
+        return ticketService.getAllTickets();
+    }
+
     @GetMapping("/my")
     public List<TicketDTO> getMyTickets(@RequestParam Long userId) {
         return ticketService.getMyTickets(userId);

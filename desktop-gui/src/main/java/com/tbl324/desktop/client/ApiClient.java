@@ -22,6 +22,7 @@ public class ApiClient {
     private final ObjectMapper mapper;
     private String token;
     private Long userId;
+    private String role;
 
     public ApiClient(String baseUrl) {
         this.baseUrl = baseUrl;
@@ -33,6 +34,7 @@ public class ApiClient {
 
     public void setToken(String token) { this.token = token; }
     public Long getUserId()            { return userId; }
+    public String getRole()            { return role; }
 
     public void login(String username, String password) throws ApiException {
         String body = String.format("{\"username\":\"%s\",\"password\":\"%s\"}", username, password);
@@ -48,6 +50,7 @@ public class ApiClient {
             JsonNode node = mapper.readTree(resp.body());
             this.token  = node.get("token").asText();
             this.userId = node.get("userId").asLong();
+            this.role   = node.has("role") ? node.get("role").asText() : "USER";
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -75,6 +78,30 @@ public class ApiClient {
         // response: {success, data: [...]}
         return mapper.convertValue(body.get("data"),
                 new TypeReference<List<SeatDTO>>() {});
+    }
+
+    public EventDTO createEvent(String title, String description, Long venueId,
+                                String startTime, String endTime) throws ApiException {
+        String body = String.format(
+                "{\"title\":\"%s\",\"description\":\"%s\",\"venueId\":%d,\"startTime\":\"%s\",\"endTime\":\"%s\"}",
+                title, description, venueId, startTime, endTime);
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/api/events"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + token)
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+        JsonNode node = sendJson(req);
+        return mapper.convertValue(node.get("data"), EventDTO.class);
+    }
+
+    public List<TicketDTO> getAllTickets() throws ApiException {
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/api/tickets"))
+                .header("Authorization", "Bearer " + token)
+                .GET().build();
+        JsonNode body = sendJson(req);
+        return mapper.convertValue(body, new TypeReference<List<TicketDTO>>() {});
     }
 
     public List<TicketDTO> getMyTickets(Long userId) throws ApiException {

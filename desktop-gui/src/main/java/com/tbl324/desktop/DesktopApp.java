@@ -2,6 +2,7 @@ package com.tbl324.desktop;
 
 import com.tbl324.desktop.client.ApiClient;
 import com.tbl324.desktop.client.ApiException;
+import com.tbl324.desktop.view.AdminDashboardView;
 import com.tbl324.desktop.view.EventListView;
 import com.tbl324.desktop.view.LoginView;
 import com.tbl324.desktop.view.MyTicketsView;
@@ -37,7 +38,11 @@ public class DesktopApp extends Application {
             try {
                 apiClient.login(username, password);
                 currentUserId = apiClient.getUserId();
-                showEventList();
+                if ("ADMIN".equals(apiClient.getRole())) {
+                    showAdminDashboard();
+                } else {
+                    showEventList();
+                }
             } catch (ApiException ex) {
                 ref[0].showError("Giriş başarısız: kullanıcı adı veya şifre hatalı.");
             } catch (Exception ex) {
@@ -63,6 +68,11 @@ public class DesktopApp extends Application {
     private void showMyTickets() {
         MyTicketsView ticketsView = new MyTicketsView(apiClient, currentUserId, this::showEventList);
         primaryStage.setScene(new Scene(ticketsView, 900, 650));
+    }
+
+    private void showAdminDashboard() {
+        AdminDashboardView admin = new AdminDashboardView(apiClient);
+        primaryStage.setScene(new Scene(admin, 900, 650));
     }
 
     public static void main(String[] args) {

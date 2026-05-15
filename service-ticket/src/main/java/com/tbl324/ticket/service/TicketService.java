@@ -89,6 +89,10 @@ public class TicketService {
         return ticketRepository.findByUserId(userId);
     }
 
+    public List<TicketDTO> getAllTickets() {
+        return ticketRepository.findAll();
+    }
+
     public void cancel(Long ticketId) {
         TicketDTO ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new NotFoundException("Bilet bulunamadı: " + ticketId));

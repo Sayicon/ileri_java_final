@@ -349,6 +349,6 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 10 — README + son | Kerem | ✅ | 2026-05-15 | 2026-05-15 | B-green |
 | 11 — Biletlerim | Efe | ✅ | 2026-05-15 | 2026-05-15 | `8667f8d` B-green |
 | 12 — Ödeme akışı | Kerem | ✅ | 2026-05-15 | 2026-05-15 | B-green |
-| 13 — Admin paneli | Efe | ⬜ | — | — | — |
+| 13 — Admin paneli | Efe | ✅ | 2026-05-15 | 2026-05-15 | B-green |
 
 ⬜ Başlanmadı · 🟡 Devam ediyor · ✅ Tamamlandı
