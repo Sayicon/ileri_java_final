@@ -13,6 +13,7 @@ import com.tbl324.shared.exception.ConflictException;
 import com.tbl324.shared.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -82,6 +83,10 @@ public class TicketService {
     public TicketDTO confirm(Long ticketId, String paymentType) {
         PaymentStrategy strategy = strategies.getOrDefault(paymentType, strategies.get("MOCK"));
         return confirm(ticketId, strategy);
+    }
+
+    public List<TicketDTO> getMyTickets(Long userId) {
+        return ticketRepository.findByUserId(userId);
     }
 
     public void cancel(Long ticketId) {

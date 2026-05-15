@@ -2,18 +2,20 @@ package com.tbl324.mobile.model;
 
 public class EventItem {
     private long id;
-    private String name;
-    private String venue;
+    private String title;
+    private String description;
+    private Long venueId;
+    private String status;
 
     public EventItem() {}
 
-    public EventItem(long id, String name, String venue) {
-        this.id    = id;
-        this.name  = name;
-        this.venue = venue;
-    }
+    public long getId()          { return id; }
+    public String getTitle()     { return title; }
+    public String getName()      { return title; }
+    public String getDescription() { return description; }
+    public Long getVenueId()     { return venueId; }
+    public String getStatus()    { return status; }
 
-    public long getId()      { return id; }
-    public String getName()  { return name; }
-    public String getVenue() { return venue; }
+    @Override
+    public String toString() { return title != null ? title : ""; }
 }

@@ -12,15 +12,23 @@ public class SeatGridModel {
         this.cols = cols;
     }
 
-    public static SeatGridModel fromSeats(List<SeatItem> seats, int cols) {
+    public static SeatGridModel fromSeats(List<SeatItem> seats) {
         if (seats.isEmpty()) {
-            return new SeatGridModel(new SeatItem[0][cols], cols);
+            return new SeatGridModel(new SeatItem[0][0], 0);
         }
         int maxRow = 0;
-        for (SeatItem s : seats) if (s.getRow() > maxRow) maxRow = s.getRow();
-        SeatItem[][] grid = new SeatItem[maxRow + 1][cols];
+        int maxCol = 0;
         for (SeatItem s : seats) {
-            if (s.getCol() < cols) grid[s.getRow()][s.getCol()] = s;
+            int r = s.getRow();
+            int c = s.getCol();
+            if (r > maxRow) maxRow = r;
+            if (c > maxCol) maxCol = c;
+        }
+        int rows = maxRow + 1;
+        int cols = maxCol + 1;
+        SeatItem[][] grid = new SeatItem[rows][cols];
+        for (SeatItem s : seats) {
+            grid[s.getRow()][s.getCol()] = s;
         }
         return new SeatGridModel(grid, cols);
     }
@@ -33,9 +41,9 @@ public class SeatGridModel {
         return grid[row][col];
     }
 
-    public SeatItem getSeatByPixel(float x, float y, float cellSize) {
-        int col = (int) (x / cellSize);
-        int row = (int) (y / cellSize);
+    public SeatItem getSeatByPixel(float x, float y, float cellStep) {
+        int col = (int) (x / cellStep);
+        int row = (int) (y / cellStep);
         return getSeatAt(row, col);
     }
 }

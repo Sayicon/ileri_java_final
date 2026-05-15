@@ -9,9 +9,9 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public class TicketJdbcRepository extends BaseJdbcRepository<TicketDTO> {
@@ -60,7 +60,7 @@ public class TicketJdbcRepository extends BaseJdbcRepository<TicketDTO> {
         if (dto.id() == null) {
             KeyHolder keys = new GeneratedKeyHolder();
             jdbc.update(con -> {
-                PreparedStatement ps = con.prepareStatement(insertSql(), Statement.RETURN_GENERATED_KEYS);
+                PreparedStatement ps = con.prepareStatement(insertSql(), new String[]{"id"});
                 try { setInsertParams(ps, dto); } catch (Exception e) { throw new RuntimeException(e); }
                 return ps;
             }, keys);
@@ -69,6 +69,12 @@ public class TicketJdbcRepository extends BaseJdbcRepository<TicketDTO> {
             jdbc.update("UPDATE tickets SET status = ? WHERE id = ?", dto.status().name(), dto.id());
             return dto;
         }
+    }
+
+    public List<TicketDTO> findByUserId(Long userId) {
+        return jdbc.query(
+                "SELECT id, event_id, seat_id, user_id, status FROM tickets WHERE user_id = ? ORDER BY id DESC",
+                rowMapper(), userId);
     }
 
     public void deleteExpired() {

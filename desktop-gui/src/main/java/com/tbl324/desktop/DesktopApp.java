@@ -1,8 +1,10 @@
 package com.tbl324.desktop;
 
 import com.tbl324.desktop.client.ApiClient;
+import com.tbl324.desktop.client.ApiException;
 import com.tbl324.desktop.view.EventListView;
 import com.tbl324.desktop.view.LoginView;
+import com.tbl324.desktop.view.MyTicketsView;
 import com.tbl324.desktop.view.SeatMapView;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -30,22 +32,37 @@ public class DesktopApp extends Application {
     }
 
     private void showLogin() {
+        LoginView[] ref = new LoginView[1];
         LoginView login = new LoginView((username, password) -> {
-            // mock login: gerçek auth service çağrısı faz 6+ ile
-            showEventList();
+            try {
+                apiClient.login(username, password);
+                currentUserId = apiClient.getUserId();
+                showEventList();
+            } catch (ApiException ex) {
+                ref[0].showError("Giriş başarısız: kullanıcı adı veya şifre hatalı.");
+            } catch (Exception ex) {
+                ref[0].showError("Bağlantı hatası: " + ex.getMessage());
+            }
         });
+        ref[0] = login;
         primaryStage.setScene(new Scene(login, 900, 650));
     }
 
     private void showEventList() {
         EventListView eventList = new EventListView(apiClient, currentUserId,
-                (event, userId) -> showSeatMap(event.id(), userId));
+                (event, userId) -> showSeatMap(event.id(), userId),
+                this::showMyTickets);
         primaryStage.setScene(new Scene(eventList, 900, 650));
     }
 
     private void showSeatMap(Long eventId, Long userId) {
         SeatMapView seatMap = new SeatMapView(apiClient, eventId, userId);
         primaryStage.setScene(new Scene(seatMap, 900, 650));
+    }
+
+    private void showMyTickets() {
+        MyTicketsView ticketsView = new MyTicketsView(apiClient, currentUserId, this::showEventList);
+        primaryStage.setScene(new Scene(ticketsView, 900, 650));
     }
 
     public static void main(String[] args) {
