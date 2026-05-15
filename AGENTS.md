@@ -310,6 +310,24 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
+### FAZ 14 — Desktop GUI UI Revize
+
+**Sorumlu: Kerem** · **Hedef: Tüm JavaFX ekranları baştan ele alınıyor**
+
+**Sorun:** Ekranlar default JavaFX gri, CSS sıfır, navigasyon eksik (koltuk haritasından geri dönülemez), legend yok, status'lar renksiz.
+
+#### Yapılacaklar
+- [ ] `src/main/resources/style.css` — global renk şeması, buton, kart, tablo stilleri
+- [ ] `LoginView` — ortalanmış kart tasarımı, mavi header şeridi, tam genişlik buton
+- [ ] `EventListView` — üst header bar (kullanıcı adı), özel `ListCell` kart, status badge
+- [ ] `SeatMapView` — üst header (← Geri), renk legend'ı, rezervasyon sonrası otomatik geri dönüş (bug fix)
+- [ ] `MyTicketsView` — status badge renkleri (CONFIRMED yeşil, PENDING sarı, CANCELLED kırmızı)
+- [ ] `AdminDashboardView` — mevcut yapıya CSS uyumu
+- [ ] **Commit:** `style(faz14): desktop gui ui revize — css, navigasyon, badge, legend`
+- [ ] **AGENTS.md güncelle**
+
+---
+
 ## Faz Durum Özeti
 
 | Faz | Sorumlu | Durum | Başlangıç | Bitiş | Commit(ler) |
@@ -328,5 +346,6 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 11 — Biletlerim | Efe | ✅ | 2026-05-15 | 2026-05-15 | `8667f8d` B-green |
 | 12 — Ödeme akışı | Kerem | ✅ | 2026-05-15 | 2026-05-15 | B-green |
 | 13 — Admin paneli | Efe | ✅ | 2026-05-15 | 2026-05-15 | B-green |
+| 14 — UI revize | Kerem | 🟡 | 2026-05-15 | — | — |
 
 ⬜ Başlanmadı · 🟡 Devam ediyor · ✅ Tamamlandı
