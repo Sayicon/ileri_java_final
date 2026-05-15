@@ -27,21 +27,22 @@ public class LoginActivity extends Activity {
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(48, 120, 48, 48);
 
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 24, 0, 24);
-
         EditText usernameField = new EditText(this);
         usernameField.setHint("Kullanıcı adı");
-        layout.addView(usernameField, params);
+        LinearLayout.LayoutParams uparam = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        uparam.setMargins(0, 24, 0, 24);
+        layout.addView(usernameField, uparam);
 
         EditText passwordField = new EditText(this);
         passwordField.setHint("Şifre");
         passwordField.setInputType(
                 android.text.InputType.TYPE_CLASS_TEXT |
                 android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        layout.addView(passwordField, params);
+        LinearLayout.LayoutParams pparam = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        pparam.setMargins(0, 24, 0, 24);
+        layout.addView(passwordField, pparam);
 
         Button loginBtn = new Button(this);
         loginBtn.setText("Giriş Yap");
