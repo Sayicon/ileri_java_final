@@ -23,15 +23,20 @@ public class LoginActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        float d = getResources().getDisplayMetrics().density;
+        int fieldH = (int)(56 * d);
+        int marginV = (int)(16 * d);
+        int pad = (int)(24 * d);
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(48, 120, 48, 48);
+        layout.setPadding(pad, (int)(80 * d), pad, pad);
 
         EditText usernameField = new EditText(this);
         usernameField.setHint("Kullanıcı adı");
         LinearLayout.LayoutParams uparam = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        uparam.setMargins(0, 24, 0, 24);
+                LinearLayout.LayoutParams.MATCH_PARENT, fieldH);
+        uparam.bottomMargin = marginV;
         layout.addView(usernameField, uparam);
 
         EditText passwordField = new EditText(this);
@@ -40,8 +45,8 @@ public class LoginActivity extends Activity {
                 android.text.InputType.TYPE_CLASS_TEXT |
                 android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
         LinearLayout.LayoutParams pparam = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        pparam.setMargins(0, 24, 0, 24);
+                LinearLayout.LayoutParams.MATCH_PARENT, fieldH);
+        pparam.bottomMargin = marginV;
         layout.addView(passwordField, pparam);
 
         Button loginBtn = new Button(this);
