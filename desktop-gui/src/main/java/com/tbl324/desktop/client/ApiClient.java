@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tbl324.desktop.model.EventDTO;
 import com.tbl324.desktop.model.SeatDTO;
 import com.tbl324.desktop.model.TicketDTO;
+import com.tbl324.desktop.model.VenueDTO;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -135,6 +136,16 @@ public class ApiClient {
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
         sendJson(req);
+    }
+
+    public List<VenueDTO> getVenues() throws ApiException {
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/api/events/venues"))
+                .header("Authorization", "Bearer " + token)
+                .GET().build();
+        JsonNode body = sendJson(req);
+        return mapper.convertValue(body.get("data"),
+                new TypeReference<List<VenueDTO>>() {});
     }
 
     public void logout() throws ApiException {

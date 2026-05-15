@@ -3,6 +3,7 @@ package com.tbl324.event.service;
 import com.tbl324.event.dto.CreateEventRequest;
 import com.tbl324.event.dto.EventDTO;
 import com.tbl324.event.dto.SeatDTO;
+import com.tbl324.event.dto.VenueDTO;
 import com.tbl324.event.mapper.EventMapper;
 import com.tbl324.event.repository.EventJdbcRepository;
 import com.tbl324.event.repository.SeatJdbcRepository;
@@ -66,5 +67,10 @@ public class EventService {
 
     public void updateSeatStatus(Long seatId, String status) {
         seatRepository.updateStatus(seatId, status);
+    }
+
+    public List<VenueDTO> findAllVenues() {
+        return venueRepository.findList(0, 100)
+                .stream().map(EventMapper::toDTO).toList();
     }
 }

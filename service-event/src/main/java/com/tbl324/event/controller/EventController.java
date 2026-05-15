@@ -3,6 +3,7 @@ package com.tbl324.event.controller;
 import com.tbl324.event.dto.CreateEventRequest;
 import com.tbl324.event.dto.EventDTO;
 import com.tbl324.event.dto.SeatDTO;
+import com.tbl324.event.dto.VenueDTO;
 import com.tbl324.event.service.EventService;
 import com.tbl324.shared.api.ApiResponse;
 import com.tbl324.shared.api.PagedResult;
@@ -51,6 +52,11 @@ public class EventController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         eventService.delete(id);
+    }
+
+    @GetMapping("/venues")
+    public ApiResponse<List<VenueDTO>> getVenues() {
+        return ApiResponse.success(eventService.findAllVenues());
     }
 
     @GetMapping("/{id}/seats")

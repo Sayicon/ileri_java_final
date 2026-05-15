@@ -3,6 +3,7 @@ package com.tbl324.desktop.view;
 import com.tbl324.desktop.client.ApiClient;
 import com.tbl324.desktop.model.EventDTO;
 import com.tbl324.desktop.model.TicketDTO;
+import com.tbl324.desktop.model.VenueDTO;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -49,7 +50,7 @@ public class AdminDashboardView extends BorderPane {
 
         TabPane tabs = new TabPane();
         tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-        tabs.getTabs().addAll(buildEventsTab(), buildTicketsTab());
+        tabs.getTabs().addAll(buildEventsTab(), buildTicketsTab(), buildVenuesTab());
 
         setTop(header);
         setCenter(tabs);
@@ -189,6 +190,19 @@ public class AdminDashboardView extends BorderPane {
     }
 
     private void showCreateEventDialog(TableView<EventDTO> table, Label statusLabel) {
+        // Önce salonları yükle
+        List<VenueDTO> venues;
+        try {
+            venues = apiClient.getVenues();
+        } catch (Exception e) {
+            statusLabel.setText("Salonlar yüklenemedi: " + e.getMessage());
+            return;
+        }
+        if (venues.isEmpty()) {
+            statusLabel.setText("Hiç salon bulunamadı.");
+            return;
+        }
+
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Yeni Etkinlik");
         dialog.setHeaderText("Etkinlik bilgilerini girin");
@@ -196,43 +210,108 @@ public class AdminDashboardView extends BorderPane {
         ButtonType createBtn = new ButtonType("Oluştur", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(createBtn, ButtonType.CANCEL);
 
-        TextField titleField    = new TextField();
-        TextField descField     = new TextField();
-        TextField venueField    = new TextField("1");
-        TextField startField    = new TextField("2027-12-01T20:00:00");
-        TextField endField      = new TextField("2027-12-01T23:00:00");
+        TextField titleField = new TextField();
+        TextField descField  = new TextField();
+        TextField startField = new TextField("2027-12-01T20:00:00");
+        TextField endField   = new TextField("2027-12-01T23:00:00");
+
+        ComboBox<VenueDTO> venueBox = new ComboBox<>(FXCollections.observableArrayList(venues));
+        venueBox.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(VenueDTO v, boolean empty) {
+                super.updateItem(v, empty);
+                setText(empty || v == null ? null : v.id() + " — " + v.name() + " (" + v.capacity() + " kişi)");
+            }
+        });
+        venueBox.setButtonCell(venueBox.getCellFactory().call(null));
+        venueBox.getSelectionModel().selectFirst();
+        venueBox.setMaxWidth(Double.MAX_VALUE);
 
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(8);
         grid.setPadding(new Insets(16));
-        grid.add(new Label("Başlık:"),      0, 0); grid.add(titleField,  1, 0);
-        grid.add(new Label("Açıklama:"),    0, 1); grid.add(descField,   1, 1);
-        grid.add(new Label("Salon ID:"),    0, 2); grid.add(venueField,  1, 2);
-        grid.add(new Label("Başlangıç:"),   0, 3); grid.add(startField,  1, 3);
-        grid.add(new Label("Bitiş:"),       0, 4); grid.add(endField,    1, 4);
+        grid.add(new Label("Başlık:"),    0, 0); grid.add(titleField, 1, 0);
+        grid.add(new Label("Açıklama:"), 0, 1); grid.add(descField,  1, 1);
+        grid.add(new Label("Salon:"),    0, 2); grid.add(venueBox,   1, 2);
+        grid.add(new Label("Başlangıç:"),0, 3); grid.add(startField, 1, 3);
+        grid.add(new Label("Bitiş:"),    0, 4); grid.add(endField,   1, 4);
 
         dialog.getDialogPane().setContent(grid);
         javafx.application.Platform.runLater(titleField::requestFocus);
 
         Optional<ButtonType> result = dialog.showAndWait();
         if (result.isPresent() && result.get() == createBtn) {
+            VenueDTO selected = venueBox.getSelectionModel().getSelectedItem();
+            if (selected == null) return;
             Thread.ofVirtual().start(() -> {
                 try {
-                    long venueId = Long.parseLong(venueField.getText().trim());
                     apiClient.createEvent(
                             titleField.getText().trim(),
                             descField.getText().trim(),
-                            venueId,
+                            selected.id(),
                             startField.getText().trim(),
                             endField.getText().trim());
-                    javafx.application.Platform.runLater(() ->
-                            loadEvents(table, statusLabel));
+                    javafx.application.Platform.runLater(() -> loadEvents(table, statusLabel));
                 } catch (Exception ex) {
                     javafx.application.Platform.runLater(() ->
                             statusLabel.setText("Hata: " + ex.getMessage()));
                 }
             });
         }
+    }
+
+    private Tab buildVenuesTab() {
+        Tab tab = new Tab("Salonlar");
+
+        TableView<VenueDTO> table = new TableView<>();
+        TableColumn<VenueDTO, Long>   idCol       = new TableColumn<>("ID");
+        TableColumn<VenueDTO, String> nameCol     = new TableColumn<>("Salon Adı");
+        TableColumn<VenueDTO, String> addressCol  = new TableColumn<>("Adres");
+        TableColumn<VenueDTO, Long>   capacityCol = new TableColumn<>("Kapasite");
+
+        idCol.setCellValueFactory(c -> new SimpleLongProperty(c.getValue().id()).asObject());
+        nameCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().name()));
+        addressCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().address()));
+        capacityCol.setCellValueFactory(c -> new SimpleLongProperty(c.getValue().capacity()).asObject());
+
+        idCol.setPrefWidth(50);
+        nameCol.setPrefWidth(220);
+        addressCol.setPrefWidth(250);
+        capacityCol.setPrefWidth(90);
+        table.getColumns().addAll(idCol, nameCol, addressCol, capacityCol);
+        table.setPlaceholder(new Label("Salon yok"));
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        Label statusLabel = new Label("Yükleniyor...");
+        statusLabel.getStyleClass().add("status-label");
+        HBox.setHgrow(statusLabel, Priority.ALWAYS);
+
+        Button refreshBtn = new Button("Yenile");
+        refreshBtn.getStyleClass().add("btn-secondary");
+        refreshBtn.setOnAction(e -> loadVenues(table, statusLabel));
+
+        HBox bottom = new HBox(8, statusLabel, refreshBtn);
+        bottom.setPadding(new Insets(8));
+
+        BorderPane content = new BorderPane(table);
+        content.setBottom(bottom);
+        tab.setContent(content);
+        loadVenues(table, statusLabel);
+        return tab;
+    }
+
+    private void loadVenues(TableView<VenueDTO> table, Label statusLabel) {
+        Thread.ofVirtual().start(() -> {
+            try {
+                List<VenueDTO> venues = apiClient.getVenues();
+                javafx.application.Platform.runLater(() -> {
+                    table.setItems(FXCollections.observableArrayList(venues));
+                    statusLabel.setText(venues.size() + " salon");
+                });
+            } catch (Exception ex) {
+                javafx.application.Platform.runLater(() ->
+                        statusLabel.setText("Hata: " + ex.getMessage()));
+            }
+        });
     }
 }
