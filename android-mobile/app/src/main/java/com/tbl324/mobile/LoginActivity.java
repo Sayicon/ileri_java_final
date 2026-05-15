@@ -2,10 +2,14 @@ package com.tbl324.mobile;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.tbl324.mobile.api.ApiClient;
@@ -21,36 +25,72 @@ public class LoginActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
 
         float d = getResources().getDisplayMetrics().density;
-        int fieldH = (int)(56 * d);
-        int marginV = (int)(16 * d);
-        int pad = (int)(24 * d);
+        int padH = (int) (24 * d);
+        int fieldH = (int) (52 * d);
+        int marginV = (int) (12 * d);
 
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(pad, (int)(80 * d), pad, pad);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.WHITE);
+
+        // Blue header block
+        LinearLayout header = new LinearLayout(this);
+        header.setOrientation(LinearLayout.VERTICAL);
+        header.setBackgroundColor(0xFF1565C0);
+        header.setPadding(padH, (int) (60 * d), padH, (int) (32 * d));
+
+        TextView appName = new TextView(this);
+        appName.setText("TBL324 Ticketing");
+        appName.setTextSize(26);
+        appName.setTextColor(Color.WHITE);
+        appName.setTypeface(null, Typeface.BOLD);
+        header.addView(appName);
+
+        TextView subtitle = new TextView(this);
+        subtitle.setText("Sisteme giriş yapın");
+        subtitle.setTextSize(14);
+        subtitle.setTextColor(0xCCFFFFFF);
+        LinearLayout.LayoutParams subP = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        subP.topMargin = (int) (4 * d);
+        header.addView(subtitle, subP);
+
+        root.addView(header);
+
+        // Form
+        LinearLayout form = new LinearLayout(this);
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(padH, (int) (32 * d), padH, padH);
 
         EditText usernameField = new EditText(this);
         usernameField.setHint("Kullanıcı adı");
-        LinearLayout.LayoutParams uparam = new LinearLayout.LayoutParams(
+        usernameField.setTextSize(16);
+        LinearLayout.LayoutParams up = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, fieldH);
-        uparam.bottomMargin = marginV;
-        layout.addView(usernameField, uparam);
+        up.bottomMargin = marginV;
+        form.addView(usernameField, up);
 
         EditText passwordField = new EditText(this);
         passwordField.setHint("Şifre");
+        passwordField.setTextSize(16);
         passwordField.setInputType(
                 android.text.InputType.TYPE_CLASS_TEXT |
                 android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        LinearLayout.LayoutParams pparam = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams pp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, fieldH);
-        pparam.bottomMargin = marginV;
-        layout.addView(passwordField, pparam);
+        pp.bottomMargin = (int) (24 * d);
+        form.addView(passwordField, pp);
 
         Button loginBtn = new Button(this);
-        loginBtn.setText("Giriş Yap");
+        loginBtn.setText("GİRİŞ YAP");
+        loginBtn.setTextColor(Color.WHITE);
+        loginBtn.setBackgroundColor(0xFF1565C0);
+        loginBtn.setTextSize(16);
         loginBtn.setOnClickListener(v -> {
             String username = usernameField.getText().toString().trim();
             String password = passwordField.getText().toString();
@@ -60,9 +100,12 @@ public class LoginActivity extends Activity {
             }
             login(username, password);
         });
-        layout.addView(loginBtn);
+        form.addView(loginBtn, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
 
-        setContentView(layout);
+        root.addView(form);
+        setContentView(root);
     }
 
     private void login(String username, String password) {

@@ -1,9 +1,5 @@
 package com.tbl324.mobile.api;
 
-import com.tbl324.mobile.model.EventItem;
-import com.tbl324.mobile.model.SeatItem;
-
-import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
@@ -15,10 +11,10 @@ import retrofit2.http.Path;
 public interface ApiService {
 
     @GET("api/events")
-    Call<List<EventItem>> getEvents();
+    Call<EventsResponse> getEvents();
 
     @GET("api/events/{id}/seats")
-    Call<List<SeatItem>> getSeats(@Path("id") long eventId);
+    Call<SeatsResponse> getSeats(@Path("id") long eventId);
 
     @POST("api/auth/login")
     Call<Map<String, String>> login(@Body Map<String, String> credentials);

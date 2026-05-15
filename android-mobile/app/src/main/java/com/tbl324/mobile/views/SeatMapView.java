@@ -15,17 +15,18 @@ import com.tbl324.mobile.viewmodel.SeatViewModel;
 
 public class SeatMapView extends View {
 
-    private static final float CELL_SIZE = 48f;
-    private static final float CELL_GAP  = 6f;
+    private final float CELL_SIZE;
+    private final float CELL_GAP;
 
     private SeatGridModel grid;
     private SeatViewModel viewModel;
 
-    private final Paint paintAvailable = makePaint(Color.rgb(76, 175, 80));
-    private final Paint paintLocked    = makePaint(Color.rgb(255, 152, 0));
-    private final Paint paintSold      = makePaint(Color.rgb(244, 67, 54));
-    private final Paint paintSelected  = makePaint(Color.rgb(33, 150, 243));
-    private final Paint paintText      = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint paintAvailable;
+    private Paint paintLocked;
+    private Paint paintSold;
+    private Paint paintSelected;
+    private final Paint paintText = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint paintLabel = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private OnSeatClickListener listener;
 
@@ -33,19 +34,32 @@ public class SeatMapView extends View {
         void onSeatClick(SeatItem seat, boolean nowSelected);
     }
 
-    public SeatMapView(Context context) { super(context); init(); }
-    public SeatMapView(Context context, AttributeSet attrs) { super(context, attrs); init(); }
+    public SeatMapView(Context context) { super(context); CELL_SIZE = dp(context, 30); CELL_GAP = dp(context, 4); init(); }
+    public SeatMapView(Context context, AttributeSet attrs) { super(context, attrs); CELL_SIZE = dp(context, 30); CELL_GAP = dp(context, 4); init(); }
+
+    private static float dp(Context ctx, float v) {
+        return v * ctx.getResources().getDisplayMetrics().density;
+    }
 
     private void init() {
+        paintAvailable = makePaint(Color.rgb(76, 175, 80));
+        paintLocked    = makePaint(Color.rgb(255, 152, 0));
+        paintSold      = makePaint(Color.rgb(244, 67, 54));
+        paintSelected  = makePaint(Color.rgb(33, 150, 243));
+
         paintText.setColor(Color.WHITE);
-        paintText.setTextSize(28f);
+        paintText.setTextSize(CELL_SIZE * 0.45f);
         paintText.setTextAlign(Paint.Align.CENTER);
-        paintText.setAntiAlias(true);
+
+        paintLabel.setColor(Color.DKGRAY);
+        paintLabel.setTextSize(CELL_SIZE * 0.5f);
+        paintLabel.setTextAlign(Paint.Align.RIGHT);
     }
 
     public void setGrid(SeatGridModel grid, SeatViewModel viewModel) {
         this.grid      = grid;
         this.viewModel = viewModel;
+        requestLayout();
         invalidate();
     }
 
@@ -53,32 +67,43 @@ public class SeatMapView extends View {
 
     @Override
     protected void onMeasure(int widthSpec, int heightSpec) {
-        int cols = grid != null ? grid.getColCount() : 10;
-        int rows = grid != null ? grid.getRowCount() : 1;
-        int w = (int) (cols * (CELL_SIZE + CELL_GAP) + CELL_GAP);
-        int h = (int) (rows * (CELL_SIZE + CELL_GAP) + CELL_GAP);
+        int cols = grid != null ? grid.getColCount() : 0;
+        int rows = grid != null ? grid.getRowCount() : 0;
+        float step = CELL_SIZE + CELL_GAP;
+        float labelW = CELL_SIZE * 1.2f;
+        int w = (int) (labelW + cols * step + CELL_GAP);
+        int h = (int) (rows * step + CELL_GAP);
         setMeasuredDimension(
-                resolveSize(w, widthSpec),
-                resolveSize(h, heightSpec));
+                resolveSize(Math.max(w, getSuggestedMinimumWidth()), widthSpec),
+                resolveSize(Math.max(h, getSuggestedMinimumHeight()), heightSpec));
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (grid == null) return;
+        if (grid == null || grid.getRowCount() == 0) return;
         float step = CELL_SIZE + CELL_GAP;
+        float labelW = CELL_SIZE * 1.2f;
+
         for (int r = 0; r < grid.getRowCount(); r++) {
+            // Row label (A, B, C...)
+            char rowChar = (char) ('A' + r);
+            float labelY = r * step + CELL_GAP + CELL_SIZE * 0.75f;
+            canvas.drawText(String.valueOf(rowChar), labelW - CELL_GAP, labelY, paintLabel);
+
             for (int c = 0; c < grid.getColCount(); c++) {
                 SeatItem seat = grid.getSeatAt(r, c);
                 if (seat == null) continue;
 
-                float left = c * step + CELL_GAP;
+                float left = labelW + c * step + CELL_GAP;
                 float top  = r * step + CELL_GAP;
                 RectF rect = new RectF(left, top, left + CELL_SIZE, top + CELL_SIZE);
 
-                Paint p = paintFor(seat);
-                canvas.drawRoundRect(rect, 8f, 8f, p);
-                canvas.drawText(String.valueOf(seat.getId()),
-                        left + CELL_SIZE / 2f, top + CELL_SIZE / 2f + 9f, paintText);
+                canvas.drawRoundRect(rect, 6f, 6f, paintFor(seat));
+                canvas.drawText(
+                        String.valueOf(seat.getSeatNumber()),
+                        left + CELL_SIZE / 2f,
+                        top + CELL_SIZE * 0.68f,
+                        paintText);
             }
         }
     }
@@ -87,8 +112,13 @@ public class SeatMapView extends View {
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() != MotionEvent.ACTION_UP || grid == null) return true;
         float step = CELL_SIZE + CELL_GAP;
-        SeatItem seat = grid.getSeatByPixel(
-                event.getX() - CELL_GAP, event.getY() - CELL_GAP, step);
+        float labelW = CELL_SIZE * 1.2f;
+        float x = event.getX() - labelW - CELL_GAP;
+        float y = event.getY() - CELL_GAP;
+        if (x < 0 || y < 0) return true;
+        int col = (int) (x / step);
+        int row = (int) (y / step);
+        SeatItem seat = grid.getSeatAt(row, col);
         if (seat != null && "AVAILABLE".equals(seat.getStatus())) {
             boolean nowSelected = viewModel.toggleSeat(seat);
             invalidate();
