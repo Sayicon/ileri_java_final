@@ -26,6 +26,12 @@ public interface ApiService {
     @POST("api/tickets/reserve")
     Call<Void> reserve(@Body Map<String, Long> body);
 
+    @POST("api/tickets/reserve")
+    Call<TicketResponse> reserveWithResponse(@Body Map<String, Long> body);
+
+    @POST("api/tickets/{id}/confirm")
+    Call<Void> confirmTicket(@Path("id") long ticketId, @Body Map<String, String> body);
+
     @GET("api/tickets/my")
     Call<List<TicketItem>> getMyTickets(@Query("userId") long userId);
 }

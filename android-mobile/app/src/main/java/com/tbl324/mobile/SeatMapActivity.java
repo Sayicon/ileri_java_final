@@ -1,6 +1,7 @@
 package com.tbl324.mobile;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -14,14 +15,18 @@ import android.widget.Toast;
 
 import com.tbl324.mobile.api.ApiClient;
 import com.tbl324.mobile.api.SeatsResponse;
+import com.tbl324.mobile.api.TicketResponse;
 import com.tbl324.mobile.model.SeatGridModel;
 import com.tbl324.mobile.model.SeatItem;
+import com.tbl324.mobile.model.TicketItem;
 import com.tbl324.mobile.viewmodel.SeatViewModel;
 import com.tbl324.mobile.views.SeatMapView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -127,17 +132,81 @@ public class SeatMapActivity extends Activity {
             Toast.makeText(this, "Koltuk seçin", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        List<Long> ticketIds = new ArrayList<>();
+        AtomicInteger pending = new AtomicInteger(seats.size());
+
         for (SeatItem seat : seats) {
             Map<String, Long> body = new HashMap<>();
             body.put("eventId", eventId);
             body.put("seatId", seat.getId());
-            ApiClient.getInstance().getService().reserve(body).enqueue(new Callback<Void>() {
-                @Override public void onResponse(Call<Void> call, Response<Void> response) {}
-                @Override public void onFailure(Call<Void> call, Throwable t) {}
+            body.put("userId", ApiClient.getInstance().getUserId());
+            ApiClient.getInstance().getService().reserveWithResponse(body)
+                    .enqueue(new Callback<TicketResponse>() {
+                @Override
+                public void onResponse(Call<TicketResponse> call, Response<TicketResponse> resp) {
+                    if (resp.isSuccessful() && resp.body() != null
+                            && resp.body().getData() != null) {
+                        synchronized (ticketIds) {
+                            ticketIds.add(resp.body().getData().getId());
+                        }
+                    }
+                    if (pending.decrementAndGet() == 0) {
+                        runOnUiThread(() -> {
+                            viewModel.clearSelection();
+                            selectionLabel.setText("Seçili koltuk: 0");
+                            if (!ticketIds.isEmpty()) showPaymentDialog(ticketIds);
+                            else Toast.makeText(SeatMapActivity.this,
+                                    "Rezervasyon başarısız", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<TicketResponse> call, Throwable t) {
+                    if (pending.decrementAndGet() == 0) {
+                        runOnUiThread(() -> Toast.makeText(SeatMapActivity.this,
+                                "Bağlantı hatası", Toast.LENGTH_SHORT).show());
+                    }
+                }
             });
         }
-        Toast.makeText(this, seats.size() + " koltuk rezerve edildi", Toast.LENGTH_LONG).show();
-        viewModel.clearSelection();
-        selectionLabel.setText("Seçili koltuk: 0");
+    }
+
+    private void showPaymentDialog(List<Long> ticketIds) {
+        new AlertDialog.Builder(this)
+                .setTitle("Ödeme Yöntemi")
+                .setMessage(ticketIds.size() + " bilet rezerve edildi. Ödeme yöntemini seçin:")
+                .setPositiveButton("Nakit", (d, w) -> confirmTickets(ticketIds, "CASH"))
+                .setNeutralButton("Kredi Kartı", (d, w) -> confirmTickets(ticketIds, "CREDIT_CARD"))
+                .setNegativeButton("İptal", null)
+                .setCancelable(false)
+                .show();
+    }
+
+    private void confirmTickets(List<Long> ticketIds, String paymentType) {
+        Map<String, String> body = new HashMap<>();
+        body.put("paymentType", paymentType);
+        AtomicInteger pending = new AtomicInteger(ticketIds.size());
+        for (Long id : ticketIds) {
+            ApiClient.getInstance().getService().confirmTicket(id, body)
+                    .enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> resp) {
+                    if (pending.decrementAndGet() == 0) {
+                        runOnUiThread(() -> Toast.makeText(SeatMapActivity.this,
+                                "Biletiniz onaylandı!", Toast.LENGTH_LONG).show());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    if (pending.decrementAndGet() == 0) {
+                        runOnUiThread(() -> Toast.makeText(SeatMapActivity.this,
+                                "Onay hatası: " + t.getMessage(), Toast.LENGTH_SHORT).show());
+                    }
+                }
+            });
+        }
     }
 }

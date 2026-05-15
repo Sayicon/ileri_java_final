@@ -8,8 +8,10 @@ import com.tbl324.desktop.model.SeatStatus;
 import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import com.tbl324.desktop.model.TicketDTO;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
@@ -128,23 +130,58 @@ public class SeatMapView extends BorderPane {
         }
         Thread.ofVirtual().start(() -> {
             List<String> errors = new ArrayList<>();
+            List<Long> reservedIds = new ArrayList<>();
             for (SeatDTO seat : selected) {
                 try {
-                    apiClient.reserve(eventId, seat.id(), userId);
+                    TicketDTO ticket = apiClient.reserve(eventId, seat.id(), userId);
+                    reservedIds.add(ticket.id());
                 } catch (Exception ex) {
                     errors.add("Koltuk " + seat.id() + ": " + ex.getMessage());
                 }
             }
             javafx.application.Platform.runLater(() -> {
                 selected.clear();
-                loadSeats();
-                if (errors.isEmpty()) {
-                    statusLabel.setText("Rezervasyon başarılı!");
-                } else {
-                    Alert alert = new Alert(Alert.AlertType.ERROR,
-                            String.join("\n", errors));
-                    alert.showAndWait();
+                if (!errors.isEmpty()) {
+                    new Alert(Alert.AlertType.ERROR, String.join("\n", errors)).showAndWait();
+                    loadSeats();
+                    return;
                 }
+                showPaymentDialog(reservedIds);
+            });
+        });
+    }
+
+    private void showPaymentDialog(List<Long> ticketIds) {
+        ButtonType nakit  = new ButtonType("Nakit");
+        ButtonType kredi  = new ButtonType("Kredi Kartı");
+        ButtonType iptal  = new ButtonType("İptal");
+
+        Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
+        dialog.setTitle("Ödeme");
+        dialog.setHeaderText(ticketIds.size() + " bilet rezerve edildi.");
+        dialog.setContentText("Ödeme yöntemi seçin:");
+        dialog.getButtonTypes().setAll(nakit, kredi, iptal);
+
+        dialog.showAndWait().ifPresent(btn -> {
+            if (btn == iptal) { loadSeats(); return; }
+            String paymentType = (btn == nakit) ? "CASH" : "CREDIT_CARD";
+            Thread.ofVirtual().start(() -> {
+                List<String> errors = new ArrayList<>();
+                for (Long id : ticketIds) {
+                    try {
+                        apiClient.confirmTicket(id, paymentType);
+                    } catch (Exception ex) {
+                        errors.add("Bilet " + id + ": " + ex.getMessage());
+                    }
+                }
+                javafx.application.Platform.runLater(() -> {
+                    loadSeats();
+                    if (errors.isEmpty()) {
+                        statusLabel.setText("Biletiniz onaylandı!");
+                    } else {
+                        new Alert(Alert.AlertType.ERROR, String.join("\n", errors)).showAndWait();
+                    }
+                });
             });
         });
     }

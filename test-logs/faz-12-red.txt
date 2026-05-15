@@ -1,0 +1,11 @@
+[ERROR] COMPILATION ERROR
+[ERROR] ApiClientTest.java: cannot find symbol
+  symbol:   method reserve(long, long, long) returning TicketDTO
+  note: method reserve(Long, Long, Long) has return type void — expected TicketDTO
+[ERROR] ApiClientTest.java: cannot find symbol
+  symbol:   method confirmTicket(Long, String)
+  location: class ApiClient
+[ERROR] 2 errors
+[INFO] BUILD FAILURE
+
+RED state — Faz 12 A commit (TDD): confirmTicket ve reserve→TicketDTO henüz eklenmedi

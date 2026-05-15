@@ -86,7 +86,7 @@ public class ApiClient {
         return mapper.convertValue(body, new TypeReference<List<TicketDTO>>() {});
     }
 
-    public void reserve(Long eventId, Long seatId, Long userId) throws ApiException {
+    public TicketDTO reserve(Long eventId, Long seatId, Long userId) throws ApiException {
         String body = String.format(
                 "{\"eventId\":%d,\"seatId\":%d,\"userId\":%d}", eventId, seatId, userId);
         HttpRequest req = HttpRequest.newBuilder()
@@ -95,7 +95,19 @@ public class ApiClient {
                 .header("Authorization", "Bearer " + token)
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
-        sendVoid(req);
+        JsonNode node = sendJson(req);
+        return mapper.convertValue(node, TicketDTO.class);
+    }
+
+    public void confirmTicket(Long ticketId, String paymentType) throws ApiException {
+        String body = String.format("{\"paymentType\":\"%s\"}", paymentType);
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/api/tickets/" + ticketId + "/confirm"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + token)
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+        sendJson(req);
     }
 
     private JsonNode sendJson(HttpRequest req) throws ApiException {
