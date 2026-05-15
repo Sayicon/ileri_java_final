@@ -37,7 +37,7 @@ Kocaeli Üniversitesi BSM TBL324 İleri Java Uygulamaları dersi kapsamında gel
 
 **Ekip:** Kerem + Efe. Commit dağılımı ~50/50 hedef (NOT-2: orantısız commit → 0). Sunumda her modül her ikisine sorulabilir — pair-walkthrough her faz sonunda yapılmalı.
 
-**Kısa teknoloji özeti:** Java 21 · Spring Boot 3.3 · Saf JDBC + PostgreSQL · Redis (Jedis) · JavaFX 21 · Android native Java · Spring Cloud Gateway · Docker Compose · JUnit 5 + Testcontainers · k6+JMeter. Detay → [`docs/plan/tech-stack-and-rubric.md`](docs/plan/tech-stack-and-rubric.md)
+**Kısa teknoloji özeti:** Java 21 · Spring Boot 3.3 · Saf JDBC + PostgreSQL · Redis (Jedis) · JavaFX 21 · Spring Cloud Gateway · Docker Compose · JUnit 5 + Testcontainers · k6+JMeter. Detay → [`docs/plan/tech-stack-and-rubric.md`](docs/plan/tech-stack-and-rubric.md)
 
 ---
 
@@ -84,11 +84,11 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 1 | Tema | Etkinlik bileti & salon | Mikroservis sınırları doğal, canvas-native use case |
 | 2 | Veri erişimi | Saf JDBC | PDF "JDBC" diyor; JPA rubrik puanını gizler |
 | 3 | NoSQL | Redis | session/lock/rate-limit için organik; Mongo zorlama olur |
-| 4 | Mobil | Android native Java | Gluon kırılgan; Android Studio + RTX 3050 sağlam |
+| 4 | Mobil | **Kapsam dışı** | +5 ek puan vazgeçildi, JavaFX desktop yeterli |
 | 5 | Gateway | Spring Cloud Gateway | Java native; Kong Lua/Go Java zorunluluğunu zayıflatır |
 | 6 | Servis sayısı | 4 | Tek sorumluluk + doğal cross-service çağrı |
 | 7 | Custom Graphics | Salon haritası (Canvas grid) | Domain ile entegre; standart bileşen değil |
-| 8 | Build | Maven multi-module + Gradle (Android) | Spring ekosistemi + Android zorunluluğu |
+| 8 | Build | Maven multi-module | Spring ekosistemi; Android modülü kapsam dışı |
 | 9 | Auth | JWT + Redis denylist | Stateless + logout/revoke desteği |
 | 10 | Test | Unit+Testcontainers+REST-assured | TDD rubriği; H2 mock leak'e açık |
 
@@ -100,7 +100,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 - [ ] Listeye **her iki üyenin adı eklenmiş** (NOT-4)
 - [ ] **Tek ortak proje, tek sunum** (NOT-5)
 - [ ] Kod kopya/intihal değil (NOT-1)
-- [ ] Java dışı dil yok — Android'de Kotlin yasak (NOT-3)
+- [ ] Java dışı dil yok (NOT-3) — Android modülü kapsam dışı bırakıldı
 - [ ] 8 zorunlu kriter + 5 ek kriter karşılandı (rubrik haritası → [`docs/plan/tech-stack-and-rubric.md`](docs/plan/tech-stack-and-rubric.md))
 
 ---
@@ -214,22 +214,9 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 7 — Android Mobil GUI
-**Sorumlu: Efe** · **Süre: 3-4 gün**
+### FAZ 7 — Android Mobil GUI ~~(Kapsam Dışı)~~
 
-#### A — Testler (önce commit'le)
-- [x] `ApiServiceTest`: Retrofit + MockWebServer
-- [x] `SeatViewModelTest`: max 5 koltuk, kapasite kontrol
-- [x] `SeatGridModelTest`: grid model mantığı
-- [x] **Commit:** `test(faz7): android api service + seat view model`
-
-#### B — Uygulama
-- [x] Android Studio modülü, **Java** (Kotlin yasak!), min SDK 24, target SDK 36
-- [x] Retrofit + OkHttp + Gson; activity'ler; `ApiClient` (token interceptor, base URL = gateway)
-- [x] `SeatMapView extends View` → `onDraw(Canvas)`: koltuk grid, tap-friendly
-- [x] INTERNET permission, emülatör testi (`10.0.2.2:8080`)
-- [x] `gradle test` → yeşil · `test-logs/faz-7-green.txt`
-- [x] **AGENTS.md güncelle**
+> Android modülü projeden çıkarıldı — +5 ek puan vazgeçildi. JavaFX desktop GUI yeterli.
 
 ---
 
@@ -279,7 +266,6 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 - `TicketJdbcRepository.findByUserId(Long)` + `TicketService.getMyTickets()` + `TicketController GET /tickets/my`.
 - `TicketDTO`: id, eventId, seatId, userId, status, paymentType alanları.
 - Desktop: `ApiClient.getMyTickets()`, `MyTicketsView` (TableView), `EventListView`'e "Biletlerim" butonu.
-- Android: `MyTicketsActivity` (kart listesi), `TicketItem`, `TicketsResponse`, `ApiService.getMyTickets()`, `EventListActivity`'ye buton, `AndroidManifest.xml` güncellendi.
 - `test-logs/faz-11-green.txt` ✅.
 
 ---
@@ -291,8 +277,6 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 - `ApiClient.reserve()` dönüş tipi `void` → `TicketDTO` (ticketId toplamak için).
 - `ApiClient.confirmTicket(Long ticketId, String paymentType)` eklendi — `POST /tickets/{id}/confirm`.
 - `SeatMapView`: `doReserve()` ticketId'leri topluyor; `showPaymentDialog()` → [Nakit] [Kredi Kartı] [İptal] → `confirmTicket()` çağrısı → "Biletiniz onaylandı!" mesajı.
-- Android: `ApiService.reserveWithResponse()` (`Call<TicketResponse>`), `ApiService.confirmTicket()`, `TicketResponse` wrapper.
-- Android: `SeatMapActivity` — rezervasyon sonrası `AlertDialog` (Nakit / Kredi Kartı / İptal) → `confirmTickets()` → "Biletiniz onaylandı!" Toast.
 - `test-logs/faz-12-green.txt` ✅ (9 test, 0 hata).
 
 ---
