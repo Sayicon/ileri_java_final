@@ -31,6 +31,11 @@ public class AuthGatewayFilter implements GlobalFilter, Ordered {
         this.redisTemplate = redisTemplate;
     }
 
+    /** Test için — Redis bağlantısı olmadan revoke kontrolü atlanır. */
+    AuthGatewayFilter() {
+        this(null);
+    }
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path   = exchange.getRequest().getPath().value();
@@ -60,18 +65,21 @@ public class AuthGatewayFilter implements GlobalFilter, Ordered {
             return deny(exchange, HttpStatus.UNAUTHORIZED, "Geçersiz token");
         }
 
-        // O-2: revoke kontrolü
-        return redisTemplate.hasKey("revoked:" + sessionId)
-                .flatMap(isRevoked -> {
-                    if (Boolean.TRUE.equals(isRevoked)) {
-                        return deny(exchange, HttpStatus.UNAUTHORIZED, "Token iptal edilmiş");
-                    }
-                    // O-1: admin-only kontrol
-                    if (isAdminOnly(path, method) && !"ADMIN".equals(role)) {
-                        return deny(exchange, HttpStatus.FORBIDDEN, "Admin yetkisi gerekli");
-                    }
-                    return chain.filter(exchange);
-                });
+        // O-2: revoke kontrolü (test ortamında redisTemplate null olabilir)
+        Mono<Boolean> revokeCheck = redisTemplate != null
+                ? redisTemplate.hasKey("revoked:" + sessionId)
+                : Mono.just(false);
+
+        return revokeCheck.flatMap(isRevoked -> {
+            if (Boolean.TRUE.equals(isRevoked)) {
+                return deny(exchange, HttpStatus.UNAUTHORIZED, "Token iptal edilmiş");
+            }
+            // O-1: admin-only kontrol
+            if (isAdminOnly(path, method) && !"ADMIN".equals(role)) {
+                return deny(exchange, HttpStatus.FORBIDDEN, "Admin yetkisi gerekli");
+            }
+            return chain.filter(exchange);
+        });
     }
 
     private boolean isAdminOnly(String path, HttpMethod method) {
