@@ -272,43 +272,15 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 11 — Biletlerim (Backend + Desktop + Android)
+### FAZ 11 — ✅ Tamamlandı
 
-**Sorumlu: Efe** · **Hedef: Sunumda "rezervasyon çalışıyor" kanıtı**
+**Commit:** `8667f8d` (B-green) · **Tarih:** 2026-05-15
 
-**Sorun:** Rezervasyon yapılıyor ama kullanıcı biletini hiç göremiyór. Sistemin işe yaradığını kanıtlayacak tek ekran eksik.
-
-#### A — Testler (önce commit'le)
-- [ ] `service-ticket`: `TicketController` GET `/tickets/my` endpoint testi — JWT userId ile filtrele
-- [ ] `service-ticket`: `TicketJdbcRepository.findByUserId(Long)` testi
-- [ ] `desktop-gui`: `ApiClientTest` — getMyTickets mock testi
-- [ ] **Commit:** `test(faz11): biletlerim endpoint ve desktop api client testleri`
-
-#### B — Uygulama
-
-**service-ticket:**
-- [ ] `TicketJdbcRepository`: `findByUserId(Long userId)` metodu ekle — `SELECT * FROM tickets WHERE user_id = ?`
-- [ ] `TicketService`: `getMyTickets(Long userId)` metodu
-- [ ] `TicketController`: `GET /tickets/my` — Authorization header'dan JWT'yi parse et, userId'yi al, ticket listesi dön
-- [ ] `TicketDTO`: `id`, `eventId`, `seatId`, `userId`, `status`, `paymentType` alanları tam olsun
-
-**desktop-gui:**
-- [ ] `ApiClient`: `getMyTickets()` metodu ekle
-- [ ] `MyTicketsView` (JavaFX): TableView — Bilet No / Etkinlik ID / Koltuk / Durum / Ödeme
-- [ ] `EventListView`'e "Biletlerim" butonu ekle → `MyTicketsView`'e geç
-- [ ] "Geri" butonu → etkinlik listesine dön
-
-**android-mobile:**
-- [ ] `MyTicketsActivity`: RecyclerView yerine LinearLayout kart listesi (Faz 7 pattern'ı)
-- [ ] `ApiService`: `GET /api/tickets/my` endpoint ekle
-- [ ] `TicketItem` model sınıfı: `id`, `eventId`, `seatId`, `status`, `paymentType`
-- [ ] `TicketsResponse` wrapper sınıfı (EventsResponse pattern'ı)
-- [ ] `EventListActivity`'ye "Biletlerim" butonu ekle
-- [ ] `AndroidManifest.xml`'e `MyTicketsActivity` ekle
-
-- [ ] `gradle test` → yeşil · `test-logs/faz-11-green.txt`
-- [ ] **Commit:** `feat(faz11): biletlerim sayfası — backend endpoint, desktop ve android`
-- [ ] **AGENTS.md güncelle**
+- `TicketJdbcRepository.findByUserId(Long)` + `TicketService.getMyTickets()` + `TicketController GET /tickets/my`.
+- `TicketDTO`: id, eventId, seatId, userId, status, paymentType alanları.
+- Desktop: `ApiClient.getMyTickets()`, `MyTicketsView` (TableView), `EventListView`'e "Biletlerim" butonu.
+- Android: `MyTicketsActivity` (kart listesi), `TicketItem`, `TicketsResponse`, `ApiService.getMyTickets()`, `EventListActivity`'ye buton, `AndroidManifest.xml` güncellendi.
+- `test-logs/faz-11-green.txt` ✅.
 
 ---
 

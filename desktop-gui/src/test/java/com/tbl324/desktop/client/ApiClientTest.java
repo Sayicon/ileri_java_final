@@ -12,6 +12,7 @@ import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ApiClientTest {
@@ -87,6 +88,45 @@ class ApiClientTest {
 
         assertThat(tickets).hasSize(1);
         assertThat(tickets.get(0).status()).isEqualTo("CONFIRMED");
+    }
+
+    @Test
+    void reserve_success_returnsTicketDTO() throws Exception {
+        apiClient.setToken("test-token");
+        server.stubFor(post(urlEqualTo("/api/tickets/reserve"))
+                .willReturn(aResponse()
+                        .withStatus(201)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"id\":42,\"eventId\":1,\"seatId\":5,\"userId\":10,\"status\":\"RESERVED\",\"paymentType\":null}")));
+
+        TicketDTO ticket = apiClient.reserve(1L, 5L, 10L);
+
+        assertThat(ticket.id()).isEqualTo(42L);
+        assertThat(ticket.status()).isEqualTo("RESERVED");
+    }
+
+    @Test
+    void confirmTicket_success_doesNotThrow() throws Exception {
+        apiClient.setToken("test-token");
+        server.stubFor(post(urlEqualTo("/api/tickets/42/confirm"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"id\":42,\"eventId\":1,\"seatId\":5,\"userId\":10,\"status\":\"CONFIRMED\",\"paymentType\":\"CASH\"}")));
+
+        assertThatCode(() -> apiClient.confirmTicket(42L, "CASH"))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void confirmTicket_serverError_throwsApiException() {
+        apiClient.setToken("test-token");
+        server.stubFor(post(urlEqualTo("/api/tickets/99/confirm"))
+                .willReturn(aResponse().withStatus(500)));
+
+        assertThatThrownBy(() -> apiClient.confirmTicket(99L, "CASH"))
+                .isInstanceOf(ApiException.class)
+                .hasMessageContaining("500");
     }
 
     @Test
