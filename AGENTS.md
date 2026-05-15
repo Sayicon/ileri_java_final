@@ -297,38 +297,16 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 13 — Admin Paneli (Desktop GUI)
+### FAZ 13 — ✅ Tamamlandı
 
-**Sorumlu: Efe** · **Hedef: Sunumda "admin etkinlik ekler → kullanıcı görür" demo akışı**
+**Commit:** `cc42249` (B-green) · **Tarih:** 2026-05-15 · **Sorumlu: Efe**
 
-**Sorun:** Sistemde 2 hardcoded etkinlik var. Demo'da "yeni etkinlik oluşturuldu" gösterilemiyor. Admin role'ü var ama hiç kullanılmıyor.
-
-#### A — Testler (önce commit'le)
-- [ ] `desktop-gui`: `ApiClientTest` — `createEvent()`, `getAllTickets()` mock testleri
-- [ ] **Commit:** `test(faz13): admin panel api client testleri`
-
-#### B — Uygulama
-
-**service-ticket:**
-- [ ] `TicketController`: `GET /tickets` (admin only) — tüm biletleri dön, Authorization kontrolü yap
-
-**desktop-gui:**
-- [ ] `ApiClient`: `createEvent(title, description, venueId)` → `POST /api/events`
-- [ ] `ApiClient`: `getAllTickets()` → `GET /api/tickets` (admin)
-- [ ] `DesktopApp.showLogin()`: login sonrası role'e göre yönlendirme:
-  - `USER` → mevcut EventListView
-  - `ADMIN` → yeni AdminDashboardView
-- [ ] `AdminDashboardView` (JavaFX, BorderPane):
-  - **Sol panel:** "Etkinlikler" / "Tüm Rezervasyonlar" menüsü
-  - **Etkinlikler tab'ı:** Mevcut etkinlik listesi (TableView) + "Yeni Etkinlik" butonu → form dialog (başlık, açıklama, salon ID, tarih)
-  - **Tüm Rezervasyonlar tab'ı:** Bilet listesi (TableView) — Bilet No / Kullanıcı ID / Etkinlik / Koltuk / Durum
-- [ ] `ApiClient.login()`: response'dan `role` alanını da al ve sakla
-
-**Not:** `admin1` / `password123` seed data'da mevcut (Faz 3 Flyway migration'ı).
-
-- [ ] `gradle test` → yeşil · `test-logs/faz-13-green.txt`
-- [ ] **Commit:** `feat(faz13): admin paneli — etkinlik yönetimi ve rezervasyon listesi`
-- [ ] **AGENTS.md güncelle**
+- `service-ticket`: `TicketController GET /tickets` (tüm biletler), `TicketService.getAllTickets()`, `TicketJdbcRepository.findAll()`.
+- `desktop-gui`: `ApiClient.createEvent()` → `POST /api/events`, `ApiClient.getAllTickets()` → `GET /api/tickets`.
+- `ApiClient.login()`: response'dan `role` alanı alınıyor ve saklanıyor.
+- `DesktopApp`: login sonrası `USER` → `EventListView`, `ADMIN` → `AdminDashboardView`.
+- `AdminDashboardView` (JavaFX, TabPane): Etkinlikler sekmesi (TableView + "Yeni Etkinlik" dialog), Tüm Rezervasyonlar sekmesi (TableView).
+- `test-logs/faz-13-green.txt` ✅.
 
 ---
 
