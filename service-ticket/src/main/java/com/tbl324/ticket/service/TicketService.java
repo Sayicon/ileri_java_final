@@ -11,6 +11,9 @@ import com.tbl324.ticket.payment.WalletPaymentStrategy;
 import com.tbl324.ticket.repository.TicketJdbcRepository;
 import com.tbl324.shared.exception.ConflictException;
 import com.tbl324.shared.exception.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +22,7 @@ import java.util.Map;
 @Service
 public class TicketService {
 
+    private static final Logger log = LoggerFactory.getLogger(TicketService.class);
     private static final long LOCK_TTL_SECONDS = 600;
 
     private final TicketJdbcRepository ticketRepository;
@@ -105,5 +109,22 @@ public class TicketService {
         ticketRepository.save(new TicketDTO(ticket.id(), ticket.eventId(),
                 ticket.seatId(), ticket.userId(), TicketStatus.CANCELLED));
         eventServiceClient.updateSeatStatus(ticket.seatId(), "AVAILABLE");
+    }
+
+    @Scheduled(fixedRate = 60_000)
+    public void processExpiredTickets() {
+        // 1. Süresi dolan PENDING biletler → EXPIRED + koltuğu serbest bırak
+        List<TicketDTO> expiredPending = ticketRepository.findExpiredPending();
+        if (!expiredPending.isEmpty()) {
+            ticketRepository.deleteExpired();
+            expiredPending.forEach(t -> eventServiceClient.updateSeatStatus(t.seatId(), "AVAILABLE"));
+            log.info("Süresi dolan {} PENDING bilet EXPIRED yapıldı", expiredPending.size());
+        }
+        // 2. Etkinliği bitmiş biletler (PENDING + CONFIRMED) → EXPIRED
+        List<Long> endedIds = eventServiceClient.getEndedEventIds();
+        if (!endedIds.isEmpty()) {
+            ticketRepository.expireByEventIds(endedIds);
+            log.info("Biten {} etkinliğin biletleri EXPIRED yapıldı", endedIds.size());
+        }
     }
 }

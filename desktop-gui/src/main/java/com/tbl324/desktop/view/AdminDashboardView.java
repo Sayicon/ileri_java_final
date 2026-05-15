@@ -133,12 +133,21 @@ public class AdminDashboardView extends BorderPane {
         eventCol.setCellValueFactory(c -> new SimpleLongProperty(c.getValue().eventId()).asObject());
         seatCol.setCellValueFactory(c -> new SimpleLongProperty(c.getValue().seatId()).asObject());
         statusCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().status()));
+        statusCol.setCellFactory(col -> new TableCell<>() {
+            @Override protected void updateItem(String status, boolean empty) {
+                super.updateItem(status, empty);
+                if (empty || status == null) { setGraphic(null); return; }
+                Label badge = new Label(statusLabel(status));
+                badge.getStyleClass().addAll("badge", badgeClass(status));
+                setGraphic(badge); setText(null);
+            }
+        });
 
         idCol.setPrefWidth(80);
         userCol.setPrefWidth(100);
         eventCol.setPrefWidth(100);
         seatCol.setPrefWidth(100);
-        statusCol.setPrefWidth(120);
+        statusCol.setPrefWidth(130);
         table.getColumns().addAll(idCol, userCol, eventCol, seatCol, statusCol);
         table.setPlaceholder(new Label("Rezervasyon yok"));
 
@@ -448,6 +457,26 @@ public class AdminDashboardView extends BorderPane {
     private static LocalDateTime toDateTime(DatePicker dp, Spinner<Integer> hour, Spinner<Integer> min) {
         LocalDate date = dp.getValue() != null ? dp.getValue() : LocalDate.now().plusDays(1);
         return date.atTime(hour.getValue(), min.getValue());
+    }
+
+    private static String statusLabel(String status) {
+        return switch (status.toUpperCase()) {
+            case "CONFIRMED" -> "Onaylı";
+            case "PENDING"   -> "Bekliyor";
+            case "CANCELLED" -> "İptal";
+            case "EXPIRED"   -> "Süresi Doldu";
+            default          -> status;
+        };
+    }
+
+    private static String badgeClass(String status) {
+        return switch (status.toUpperCase()) {
+            case "CONFIRMED" -> "badge-confirmed";
+            case "PENDING"   -> "badge-pending";
+            case "CANCELLED" -> "badge-cancelled";
+            case "EXPIRED"   -> "badge-expired";
+            default          -> "badge-pending";
+        };
     }
 
     private Tab buildVenuesTab() {

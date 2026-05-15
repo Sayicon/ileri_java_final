@@ -106,7 +106,8 @@ public class MyTicketsView extends BorderPane {
         Thread.ofVirtual().start(() -> {
             try {
                 List<TicketDTO> tickets = apiClient.getMyTickets(userId).stream()
-                        .filter(t -> "CONFIRMED".equalsIgnoreCase(t.status()))
+                        .filter(t -> "CONFIRMED".equalsIgnoreCase(t.status())
+                                  || "EXPIRED".equalsIgnoreCase(t.status()))
                         .toList();
                 javafx.application.Platform.runLater(() -> {
                     table.setItems(FXCollections.observableArrayList(tickets));
@@ -124,7 +125,7 @@ public class MyTicketsView extends BorderPane {
             case "CONFIRMED" -> "badge-confirmed";
             case "PENDING"   -> "badge-pending";
             case "CANCELLED" -> "badge-cancelled";
-            case "RESERVED"  -> "badge-reserved";
+            case "EXPIRED"   -> "badge-expired";
             default          -> "badge-pending";
         };
     }

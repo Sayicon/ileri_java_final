@@ -73,4 +73,8 @@ public class EventService {
         return venueRepository.findList(0, 100)
                 .stream().map(EventMapper::toDTO).toList();
     }
+
+    public List<Long> findEndedEventIds() {
+        return eventRepository.findEndedIds();
+    }
 }

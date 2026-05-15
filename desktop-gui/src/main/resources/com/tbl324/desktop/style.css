@@ -172,6 +172,7 @@
 .badge-pending   { -fx-background-color: #FFF8E1; -fx-text-fill: #E65100; }
 .badge-cancelled { -fx-background-color: #FFEBEE; -fx-text-fill: #C62828; }
 .badge-reserved  { -fx-background-color: #EDE7F6; -fx-text-fill: #4527A0; }
+.badge-expired   { -fx-background-color: #EEEEEE; -fx-text-fill: #616161; }
 
 /* ── Bottom bar ──────────────────────────────────────────────────────── */
 .bottom-bar {

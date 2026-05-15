@@ -70,4 +70,9 @@ public class EventController {
         eventService.updateSeatStatus(seatId, body.get("status"));
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/ended-ids")
+    public ApiResponse<List<Long>> getEndedEventIds() {
+        return ApiResponse.success(eventService.findEndedEventIds());
+    }
 }

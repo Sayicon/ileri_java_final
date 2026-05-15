@@ -5,10 +5,13 @@ import com.tbl324.event.domain.EventStatus;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 public class EventJdbcRepository extends BaseJdbcRepository<Event, Long> {
@@ -76,5 +79,18 @@ public class EventJdbcRepository extends BaseJdbcRepository<Event, Long> {
     @Override
     protected Long getId(Event event) {
         return event.getId();
+    }
+
+    public List<Long> findEndedIds() {
+        String sql = "SELECT id FROM events WHERE end_time < NOW()";
+        List<Long> ids = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) ids.add(rs.getLong(1));
+        } catch (SQLException e) {
+            throw new RuntimeException("findEndedIds failed", e);
+        }
+        return ids;
     }
 }

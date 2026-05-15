@@ -12,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 public class TicketJdbcRepository extends BaseJdbcRepository<TicketDTO> {
@@ -83,8 +84,21 @@ public class TicketJdbcRepository extends BaseJdbcRepository<TicketDTO> {
                 rowMapper());
     }
 
+    public List<TicketDTO> findExpiredPending() {
+        return jdbc.query(
+                "SELECT id, event_id, seat_id, user_id, status FROM tickets WHERE status = 'PENDING' AND expires_at < NOW()",
+                rowMapper());
+    }
+
     public void deleteExpired() {
-        jdbc.update("UPDATE tickets SET status = 'EXPIRED' WHERE status = 'PENDING' AND expires_at < ?",
-                Timestamp.valueOf(LocalDateTime.now()));
+        jdbc.update("UPDATE tickets SET status = 'EXPIRED' WHERE status = 'PENDING' AND expires_at < NOW()");
+    }
+
+    public void expireByEventIds(List<Long> eventIds) {
+        if (eventIds.isEmpty()) return;
+        String placeholders = eventIds.stream().map(id -> "?").collect(Collectors.joining(","));
+        jdbc.update(
+                "UPDATE tickets SET status = 'EXPIRED' WHERE event_id IN (" + placeholders + ") AND status IN ('PENDING','CONFIRMED')",
+                eventIds.toArray());
     }
 }
