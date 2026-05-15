@@ -80,7 +80,10 @@ public class MyTicketsActivity extends Activity {
             @Override
             public void onResponse(Call<List<TicketItem>> call, Response<List<TicketItem>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    showTickets(response.body());
+                    List<TicketItem> confirmed = response.body().stream()
+                            .filter(t -> "CONFIRMED".equalsIgnoreCase(t.getStatus()))
+                            .collect(java.util.stream.Collectors.toList());
+                    showTickets(confirmed);
                 } else {
                     Toast.makeText(MyTicketsActivity.this,
                             "Yükleme hatası: " + response.code(), Toast.LENGTH_SHORT).show();

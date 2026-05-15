@@ -37,8 +37,10 @@ public class TicketService {
         this.eventServiceClient        = eventServiceClient;
         this.notificationServiceClient = notificationServiceClient;
         this.strategies = Map.of(
-                "MOCK",   new MockPaymentStrategy(),
-                "WALLET", new WalletPaymentStrategy()
+                "MOCK",        new MockPaymentStrategy(),
+                "WALLET",      new WalletPaymentStrategy(),
+                "CASH",        new MockPaymentStrategy(),
+                "CREDIT_CARD", new MockPaymentStrategy()
         );
     }
 
@@ -56,7 +58,9 @@ public class TicketService {
         }
 
         TicketDTO toSave = new TicketDTO(null, req.getEventId(), req.getSeatId(), req.getUserId(), TicketStatus.PENDING);
-        return ticketRepository.save(toSave);
+        TicketDTO saved = ticketRepository.save(toSave);
+        eventServiceClient.updateSeatStatus(req.getSeatId(), "LOCKED");
+        return saved;
     }
 
     // package-private: TicketServiceTest (same package) erişebilir,
@@ -72,6 +76,7 @@ public class TicketService {
         TicketDTO confirmed = new TicketDTO(existing.id(), existing.eventId(),
                 existing.seatId(), existing.userId(), TicketStatus.CONFIRMED);
         TicketDTO saved = ticketRepository.save(confirmed);
+        eventServiceClient.updateSeatStatus(saved.seatId(), "SOLD");
 
         notificationServiceClient.sendAsync(
                 "user-" + saved.userId(),
@@ -99,5 +104,6 @@ public class TicketService {
         seatLockService.release(ticket.eventId(), ticket.seatId(), "user-" + ticket.userId());
         ticketRepository.save(new TicketDTO(ticket.id(), ticket.eventId(),
                 ticket.seatId(), ticket.userId(), TicketStatus.CANCELLED));
+        eventServiceClient.updateSeatStatus(ticket.seatId(), "AVAILABLE");
     }
 }

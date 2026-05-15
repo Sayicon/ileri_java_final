@@ -63,4 +63,8 @@ public class EventService {
         return seatRepository.findByVenueId(event.getVenueId())
                 .stream().map(EventMapper::toDTO).toList();
     }
+
+    public void updateSeatStatus(Long seatId, String status) {
+        seatRepository.updateStatus(seatId, status);
+    }
 }

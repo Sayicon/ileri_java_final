@@ -323,6 +323,116 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
+## Proje Çapı Analiz & İyileştirme Planı
+
+> Tüm modüller incelendi (2026-05-15). Bulgular öncelik sırasına göre listelendi.
+
+---
+
+### 🔴 KRİTİK — Demo'yu Kıran Hatalar
+
+#### K-1: Koltuk Durumu Hiç Güncellenmiyor (Reserve → LOCKED, Confirm → SOLD)
+**Etki:** Rezervasyon ve ödeme sonrası koltuklar haritada hâlâ AVAILABLE görünüyor. Başka kullanıcı aynı koltuğu seçip tıklayabiliyor; ikinci rezervasyon Redis lock sayesinde engellense de UI karışıklık yaratıyor. `SeatStatus.LOCKED` (turuncu) ve `SeatStatus.SOLD` (kırmızı) renkleri `SeatColorMapper`'da tanımlı ama hiç kullanılmıyor.
+**Sebep:** `TicketService.reserve()` sadece Redis'e kilit koyuyor, DB'deki `seats.status`'u LOCKED yapmıyor. `TicketService.confirm()` ise DB'yi SOLD'a hiç çevirmiyor. `EventController`'da koltuk durumu güncelleyen endpoint yok; `EventServiceClient`'ta (service-ticket tarafı) bu çağrı da yok.
+**Sorumlu: Efe** (service-event) + **Kerem** (service-ticket / EventServiceClient)
+
+**service-event tarafı (Efe):**
+- [x] `SeatJdbcRepository`'e `updateStatus(Long seatId, String status)` metodu ekle
+- [x] `EventService`'e `updateSeatStatus(Long seatId, String status)` ekle
+- [x] `EventController`'a `PATCH /events/seats/{seatId}/status` endpoint'i ekle (body: `{"status":"LOCKED"}`)
+
+**service-ticket tarafı (Kerem):**
+- [x] `EventServiceClient`'a `updateSeatStatus(Long seatId, String status)` ekle (PATCH çağrısı)
+- [x] `TicketService.reserve()` sonunda `eventServiceClient.updateSeatStatus(seatId, "LOCKED")` çağır
+- [x] `TicketService.confirm()` sonunda `eventServiceClient.updateSeatStatus(seatId, "SOLD")` çağır
+- [x] `TicketService.cancel()` sonunda `eventServiceClient.updateSeatStatus(seatId, "AVAILABLE")` çağır
+
+#### K-2: Android Ödeme Tipi Uyumsuzluğu
+**Etki:** Android "CASH"/"CREDIT_CARD" gönderiyor, backend sadece "MOCK"/"WALLET" biliyor → `getOrDefault` nedeniyle arka planda MOCK çalışıyor.
+**Sorumlu: Kerem**
+
+- [x] `TicketService.confirm()` içindeki strategy map'ine `"CASH"` → `MockPaymentStrategy`, `"CREDIT_CARD"` → `MockPaymentStrategy` mapping'i ekle
+
+#### K-3: Admin Panelinde Bilet Onaylama Yok
+**Etki:** Admin "Tüm Rezervasyonlar" tabında PENDING biletleri sadece görebiliyor, onaylayamıyor. Demo'da "admin onaylar" senaryosu gösterilemiyor.
+**Sorumlu: Efe** (admin paneli)
+
+- [x] `AdminDashboardView` biletler tabına "Onayla" butonu ekle
+- [x] `ApiClient.confirmTicket()` çağrısını bağla
+
+---
+
+### 🟡 ÖNEMLİ — Rubrik Puanını Etkileyen Eksikler
+
+#### O-1: Gateway'de Role Kontrolü Yok
+**Etki:** Her JWT token sahibi `POST /api/events`, `GET /api/tickets` gibi admin endpoint'lerine erişebilir.
+**Sorumlu: Kerem**
+
+- [x] `AuthGatewayFilter`'a role claim parse'ı ekle
+- [x] Admin-only path'ler için 403 dön
+
+#### O-2: Logout Sonrası Token Geçerli Kalıyor
+**Etki:** Auth servisi Redis'e revoked token ekliyor ama gateway bunu kontrol etmiyor → güvenlik açığı.
+**Sorumlu: Kerem**
+
+- [x] Gateway filter'da `SessionRedisRepository.isRevoked(sessionId)` çağrısı ekle (veya Auth servisine `/auth/validate` endpoint'i ekle)
+
+#### O-3: Seed Data Yok — Manuel Kurulum Gerekiyor
+**Etki:** `docker compose up` sonrası admin kullanıcısı yok, etkinlik yok. Demo'da el ile kayıt açmak gerekiyor.
+**Sorumlu: Kerem + Efe**
+
+- [x] `service-auth` migration: `V3__seed_admin.sql` — admin1/password123 BCrypt hash ile
+- [x] `service-event` migration: `V3__seed_venue2_seats.sql` — venue 2 için 1000 koltuk + event 2 güncelleme
+
+---
+
+### 🟢 İYİLEŞTİRME — UX & Kod Kalitesi
+
+#### İ-1: Koltuk Haritası Gerçek Zamanlı Durumu Yansıtmıyor
+Başkası koltuk alınca harita yenilenene kadar AVAILABLE gösteriyor.
+
+- [x] `SeatMapView`'e "Yenile" butonu ekle
+
+#### İ-2: Notification Servisi Tamamen Mock
+`EmailNotifier`, `SmsNotifier`, `PushNotifier` gerçek iş yapmıyor — sadece yorum satırı var. Akademik notlara etkisi düşük ama pattern testi için kritik.
+
+- [x] Her notifier'a en azından `log.info(...)` ekle
+
+#### İ-3: GlobalExceptionHandler Log Atmıyor
+`service-ticket` `handleGeneric()` exception'ı yutup 500 döndürüyor, log basmıyor.
+
+- [x] `handleGeneric()` içine `log.error("Unhandled", ex)` ekle
+
+#### İ-4: Desktop Loading State Yok
+Async işlemler (seat yükleme, rezervasyon) sırasında UI donuyor gibi görünüyor.
+
+- [x] Async işlemler için `ProgressIndicator` overlay ekle
+
+#### İ-5: Android Biletlerim Filtresi
+`MyTicketsActivity` tüm biletleri gösteriyor.
+
+- [x] Desktop'taki gibi sadece CONFIRMED biletleri göster
+
+---
+
+### Görev Dağılımı Özeti
+
+| # | Görev | Sorumlu | Öncelik | Durum |
+|---|---|---|---|---|
+| K-1 | Seat status LOCKED/SOLD güncellemesi | Efe + Kerem | 🔴 Kritik | ✅ |
+| K-2 | Android payment type mapping | Kerem | 🔴 Kritik | ✅ |
+| K-3 | Admin bilet onaylama | Efe | 🔴 Kritik | ✅ |
+| O-1 | Gateway role kontrolü | Kerem | 🟡 Önemli | ✅ |
+| O-2 | Token revoke gateway'de | Kerem | 🟡 Önemli | ✅ |
+| O-3 | Seed data (admin + etkinlik) | Kerem + Efe | 🟡 Önemli | ✅ |
+| İ-1 | SeatMap yenile butonu | — | 🟢 İyileştirme | ✅ |
+| İ-2 | Notification log | — | 🟢 İyileştirme | ✅ |
+| İ-3 | ExceptionHandler log | — | 🟢 İyileştirme | ✅ |
+| İ-4 | Desktop loading state | — | 🟢 İyileştirme | ✅ |
+| İ-5 | Android Biletlerim filtresi | — | 🟢 İyileştirme | ✅ |
+
+---
+
 ## Faz Durum Özeti
 
 | Faz | Sorumlu | Durum | Başlangıç | Bitiş | Commit(ler) |

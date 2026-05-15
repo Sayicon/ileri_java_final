@@ -28,4 +28,18 @@ public class EventServiceClient {
             return false;
         }
     }
+
+    public void updateSeatStatus(Long seatId, String status) {
+        try {
+            String body = "{\"status\":\"" + status + "\"}";
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(eventServiceUrl + "/events/seats/" + seatId + "/status"))
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(body))
+                    .header("Content-Type", "application/json")
+                    .build();
+            httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+        } catch (Exception e) {
+            // koltuk durum güncellemesi kritik değil — bilet akışını bloklama
+        }
+    }
 }

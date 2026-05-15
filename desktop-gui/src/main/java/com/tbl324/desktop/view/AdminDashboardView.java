@@ -7,7 +7,9 @@ import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -101,10 +103,36 @@ public class AdminDashboardView extends BorderPane {
         table.setPlaceholder(new Label("Rezervasyon yok"));
 
         Label statusLabel = new Label("Yükleniyor...");
+        statusLabel.getStyleClass().add("status-label");
+        HBox.setHgrow(statusLabel, Priority.ALWAYS);
+
+        Button confirmBtn = new Button("Onayla");
+        confirmBtn.getStyleClass().add("btn-primary");
+        confirmBtn.setDisable(true);
+        confirmBtn.setOnAction(e -> {
+            TicketDTO sel = table.getSelectionModel().getSelectedItem();
+            if (sel == null) return;
+            Thread.ofVirtual().start(() -> {
+                try {
+                    apiClient.confirmTicket(sel.id(), "CASH");
+                    javafx.application.Platform.runLater(() ->
+                            loadAllTickets(table, statusLabel));
+                } catch (Exception ex) {
+                    javafx.application.Platform.runLater(() ->
+                            new Alert(Alert.AlertType.ERROR, "Onaylama başarısız: " + ex.getMessage()).showAndWait());
+                }
+            });
+        });
+
+        table.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
+            confirmBtn.setDisable(sel == null || !"PENDING".equalsIgnoreCase(sel.status()));
+        });
+
         Button refreshBtn = new Button("Yenile");
+        refreshBtn.getStyleClass().add("btn-secondary");
         refreshBtn.setOnAction(e -> loadAllTickets(table, statusLabel));
 
-        HBox bottom = new HBox(8, statusLabel, refreshBtn);
+        HBox bottom = new HBox(8, statusLabel, refreshBtn, confirmBtn);
         bottom.setPadding(new Insets(8));
 
         BorderPane content = new BorderPane(table);

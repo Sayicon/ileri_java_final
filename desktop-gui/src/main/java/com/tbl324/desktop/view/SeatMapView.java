@@ -14,12 +14,14 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
@@ -42,8 +44,9 @@ public class SeatMapView extends BorderPane {
     private SeatGrid          grid     = SeatGrid.fromSeats(List.of(), COLS);
     private final List<SeatDTO> selected = new ArrayList<>();
 
-    private Canvas canvas;
-    private Label  selectionLabel;
+    private Canvas            canvas;
+    private Label             selectionLabel;
+    private ProgressIndicator loadingIndicator;
 
     public SeatMapView(ApiClient apiClient, Long eventId, String eventName,
                        Long userId, Runnable onBack) {
@@ -90,18 +93,29 @@ public class SeatMapView extends BorderPane {
         canvas = new Canvas(COLS * (CELL_SIZE + CELL_GAP), 600);
         canvas.setOnMouseClicked(e -> handleClick(e.getX(), e.getY()));
 
-        ScrollPane scroll = new ScrollPane(canvas);
+        loadingIndicator = new ProgressIndicator();
+        loadingIndicator.setMaxSize(60, 60);
+        loadingIndicator.setVisible(false);
+
+        StackPane canvasStack = new StackPane(canvas, loadingIndicator);
+        canvasStack.setAlignment(Pos.CENTER);
+
+        ScrollPane scroll = new ScrollPane(canvasStack);
         scroll.setFitToWidth(false);
         scroll.setStyle("-fx-background-color: #F5F5F5; -fx-background: #F5F5F5;");
         scroll.setPadding(new Insets(12));
 
         // ── Bottom bar ───────────────────────────────────────────────────────
+        Button refreshBtn = new Button("Yenile");
+        refreshBtn.getStyleClass().add("btn-secondary");
+        refreshBtn.setOnAction(e -> { selected.clear(); loadSeats(); });
+
         Button reserveBtn = new Button("Rezerve Et");
         reserveBtn.getStyleClass().add("btn-primary");
         reserveBtn.setMaxWidth(Double.MAX_VALUE);
         reserveBtn.setOnAction(e -> doReserve());
 
-        HBox bottom = new HBox(reserveBtn);
+        HBox bottom = new HBox(8, refreshBtn, reserveBtn);
         bottom.getStyleClass().add("bottom-bar");
         bottom.setPadding(new Insets(12, 16, 12, 16));
         HBox.setHgrow(reserveBtn, Priority.ALWAYS);
@@ -126,14 +140,23 @@ public class SeatMapView extends BorderPane {
     }
 
     private void loadSeats() {
+        loadingIndicator.setVisible(true);
+        canvas.setVisible(false);
         Thread.ofVirtual().start(() -> {
             try {
                 List<SeatDTO> seats = apiClient.getSeats(eventId);
                 grid = SeatGrid.fromSeats(seats, COLS);
-                javafx.application.Platform.runLater(this::render);
+                javafx.application.Platform.runLater(() -> {
+                    loadingIndicator.setVisible(false);
+                    canvas.setVisible(true);
+                    render();
+                });
             } catch (Exception ex) {
-                javafx.application.Platform.runLater(() ->
-                        selectionLabel.setText("Koltuklar yüklenemedi"));
+                javafx.application.Platform.runLater(() -> {
+                    loadingIndicator.setVisible(false);
+                    canvas.setVisible(true);
+                    selectionLabel.setText("Koltuklar yüklenemedi");
+                });
             }
         });
     }

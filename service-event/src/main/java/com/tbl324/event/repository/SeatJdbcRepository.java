@@ -77,4 +77,16 @@ public class SeatJdbcRepository extends BaseJdbcRepository<Seat, Long> {
         }
         return result;
     }
+
+    public void updateStatus(Long seatId, String status) {
+        String sql = "UPDATE seats SET status = ? WHERE id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setLong(2, seatId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("updateStatus failed", e);
+        }
+    }
 }

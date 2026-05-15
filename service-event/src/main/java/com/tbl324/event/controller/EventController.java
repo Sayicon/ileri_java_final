@@ -11,7 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.ResponseEntity;
+
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/events")
@@ -53,5 +56,12 @@ public class EventController {
     @GetMapping("/{id}/seats")
     public ApiResponse<List<SeatDTO>> getSeats(@PathVariable Long id) {
         return ApiResponse.success(eventService.findSeatsByEventId(id));
+    }
+
+    @PatchMapping("/seats/{seatId}/status")
+    public ResponseEntity<Void> updateSeatStatus(@PathVariable Long seatId,
+                                                  @RequestBody Map<String, String> body) {
+        eventService.updateSeatStatus(seatId, body.get("status"));
+        return ResponseEntity.noContent().build();
     }
 }
