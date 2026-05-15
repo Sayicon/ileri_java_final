@@ -13,7 +13,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class ApiClient {
@@ -38,7 +40,7 @@ public class ApiClient {
     public String getRole()            { return role; }
 
     public void login(String username, String password) throws ApiException {
-        String body = String.format("{\"username\":\"%s\",\"password\":\"%s\"}", username, password);
+        String body = toJson(Map.of("username", username, "password", password));
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/api/auth/login"))
                 .header("Content-Type", "application/json")
@@ -83,9 +85,13 @@ public class ApiClient {
 
     public EventDTO createEvent(String title, String description, Long venueId,
                                 String startTime, String endTime) throws ApiException {
-        String body = String.format(
-                "{\"title\":\"%s\",\"description\":\"%s\",\"venueId\":%d,\"startTime\":\"%s\",\"endTime\":\"%s\"}",
-                title, description, venueId, startTime, endTime);
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("title", title);
+        m.put("description", description);
+        m.put("venueId", venueId);
+        m.put("startTime", startTime);
+        m.put("endTime", endTime);
+        String body = toJson(m);
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/api/events"))
                 .header("Content-Type", "application/json")
@@ -115,8 +121,7 @@ public class ApiClient {
     }
 
     public TicketDTO reserve(Long eventId, Long seatId, Long userId) throws ApiException {
-        String body = String.format(
-                "{\"eventId\":%d,\"seatId\":%d,\"userId\":%d}", eventId, seatId, userId);
+        String body = toJson(Map.of("eventId", eventId, "seatId", seatId, "userId", userId));
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/api/tickets/reserve"))
                 .header("Content-Type", "application/json")
@@ -128,7 +133,7 @@ public class ApiClient {
     }
 
     public void confirmTicket(Long ticketId, String paymentType) throws ApiException {
-        String body = String.format("{\"paymentType\":\"%s\"}", paymentType);
+        String body = toJson(Map.of("paymentType", paymentType));
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/api/tickets/" + ticketId + "/confirm"))
                 .header("Content-Type", "application/json")
@@ -139,9 +144,11 @@ public class ApiClient {
     }
 
     public void register(String username, String email, String password) throws ApiException {
-        String body = String.format(
-                "{\"username\":\"%s\",\"email\":\"%s\",\"password\":\"%s\"}",
-                username, email, password);
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("username", username);
+        m.put("email", email);
+        m.put("password", password);
+        String body = toJson(m);
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/api/auth/register"))
                 .header("Content-Type", "application/json")
@@ -170,6 +177,14 @@ public class ApiClient {
         this.token  = null;
         this.userId = null;
         this.role   = null;
+    }
+
+    private String toJson(Map<String, Object> data) throws ApiException {
+        try {
+            return mapper.writeValueAsString(data);
+        } catch (Exception e) {
+            throw new ApiException(e);
+        }
     }
 
     private JsonNode sendJson(HttpRequest req) throws ApiException {
