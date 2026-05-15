@@ -2,6 +2,8 @@ package com.tbl324.desktop.view;
 
 import com.tbl324.desktop.client.ApiClient;
 import com.tbl324.desktop.model.EventDTO;
+import com.tbl324.desktop.model.SeatDTO;
+import com.tbl324.desktop.model.SeatStatus;
 import com.tbl324.desktop.model.TicketDTO;
 import com.tbl324.desktop.model.VenueDTO;
 import javafx.beans.property.SimpleLongProperty;
@@ -9,11 +11,15 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -78,13 +84,29 @@ public class AdminDashboardView extends BorderPane {
         table.setPlaceholder(new Label("Etkinlik yok"));
 
         Label statusLabel = new Label("Yükleniyor...");
-        Button refreshBtn = new Button("Yenile");
-        Button newEventBtn = new Button("+ Yeni Etkinlik");
+        HBox.setHgrow(statusLabel, Priority.ALWAYS);
+
+        Button refreshBtn   = new Button("Yenile");
+        Button newEventBtn  = new Button("+ Yeni Etkinlik");
+        Button seatsBtn     = new Button("Koltukları Görüntüle");
+        seatsBtn.getStyleClass().add("btn-secondary");
+        seatsBtn.setDisable(true);
+
+        table.getSelectionModel().selectedItemProperty().addListener(
+                (obs, old, sel) -> seatsBtn.setDisable(sel == null));
+        table.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2 && table.getSelectionModel().getSelectedItem() != null)
+                showSeatMapDialog(table.getSelectionModel().getSelectedItem());
+        });
 
         refreshBtn.setOnAction(e -> loadEvents(table, statusLabel));
         newEventBtn.setOnAction(e -> showCreateEventDialog(table, statusLabel));
+        seatsBtn.setOnAction(e -> {
+            EventDTO sel = table.getSelectionModel().getSelectedItem();
+            if (sel != null) showSeatMapDialog(sel);
+        });
 
-        HBox bottom = new HBox(8, statusLabel, refreshBtn, newEventBtn);
+        HBox bottom = new HBox(8, statusLabel, refreshBtn, seatsBtn, newEventBtn);
         bottom.setPadding(new Insets(8));
 
         BorderPane content = new BorderPane(table);
@@ -295,6 +317,118 @@ public class AdminDashboardView extends BorderPane {
                 }
             });
         }
+    }
+
+    private void showSeatMapDialog(EventDTO event) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle(event.title() + " — Koltuk Haritası");
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().setPrefSize(760, 560);
+
+        Label loadingLabel = new Label("Koltuklar yükleniyor...");
+        loadingLabel.setStyle("-fx-font-size: 14px;");
+
+        // İstatistik etiketi
+        Label statsLabel = new Label();
+        statsLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #424242;");
+
+        // Legend
+        HBox legend = new HBox(16,
+                legendItem(Color.web("#4CAF50"), "Boş"),
+                legendItem(Color.web("#FF9800"), "Bekliyor"),
+                legendItem(Color.web("#F44336"), "Dolu"));
+        legend.setPadding(new Insets(4, 8, 4, 8));
+
+        Canvas canvas = new Canvas(720, 440);
+        ScrollPane scroll = new ScrollPane(canvas);
+        scroll.setFitToWidth(false);
+        scroll.setPrefSize(740, 450);
+
+        VBox content = new VBox(6, legend, statsLabel, scroll);
+        content.setPadding(new Insets(8));
+        dialog.getDialogPane().setContent(new VBox(loadingLabel));
+
+        Thread.ofVirtual().start(() -> {
+            try {
+                java.util.List<SeatDTO> seats = apiClient.getSeats(event.id());
+                javafx.application.Platform.runLater(() -> {
+                    drawSeatMap(canvas, seats);
+                    long avail   = seats.stream().filter(s -> s.status() == SeatStatus.AVAILABLE).count();
+                    long locked  = seats.stream().filter(s -> s.status() == SeatStatus.LOCKED).count();
+                    long sold    = seats.stream().filter(s -> s.status() == SeatStatus.SOLD).count();
+                    statsLabel.setText(String.format("Toplam: %d  |  Boş: %d  |  Bekliyor: %d  |  Dolu: %d",
+                            seats.size(), avail, locked, sold));
+                    dialog.getDialogPane().setContent(content);
+                });
+            } catch (Exception ex) {
+                javafx.application.Platform.runLater(() ->
+                        dialog.getDialogPane().setContent(new Label("Hata: " + ex.getMessage())));
+            }
+        });
+
+        dialog.showAndWait();
+    }
+
+    private void drawSeatMap(Canvas canvas, java.util.List<SeatDTO> seats) {
+        if (seats.isEmpty()) return;
+
+        // Kolon sayısını sat numarasının max'ından belirle
+        int cols = seats.stream().mapToInt(SeatDTO::seatNumber).max().orElse(10);
+        int rows = seats.stream().mapToInt(s -> s.rowLabel().charAt(0) - 'A' + 1).max().orElse(1);
+
+        int cellSize = 18;
+        int pad = 30;
+        double w = pad + cols * (cellSize + 2) + 10;
+        double h = pad + rows * (cellSize + 2) + 10;
+        canvas.setWidth(Math.max(w, 720));
+        canvas.setHeight(Math.max(h, 60));
+
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.setFill(Color.web("#FAFAFA"));
+        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+
+        // Sıra etiketleri
+        gc.setFill(Color.web("#757575"));
+        gc.setFont(javafx.scene.text.Font.font(10));
+        for (int r = 0; r < rows; r++) {
+            gc.fillText(String.valueOf((char)('A' + r)), 6, pad + r * (cellSize + 2) + cellSize - 3);
+        }
+
+        java.util.Map<String, SeatStatus> statusMap = new java.util.HashMap<>();
+        for (SeatDTO s : seats) {
+            statusMap.put(s.rowLabel() + "-" + s.seatNumber(), s.status());
+        }
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                String key = String.valueOf((char)('A' + r)) + "-" + (c + 1);
+                SeatStatus st = statusMap.get(key);
+                if (st == null) continue;
+
+                double x = pad + c * (cellSize + 2);
+                double y = pad + r * (cellSize + 2) - 8;
+
+                Color fill = switch (st) {
+                    case AVAILABLE -> Color.web("#4CAF50");
+                    case LOCKED    -> Color.web("#FF9800");
+                    case SOLD      -> Color.web("#F44336");
+                    default        -> Color.LIGHTGRAY;
+                };
+                gc.setFill(fill);
+                gc.fillRoundRect(x, y, cellSize, cellSize, 4, 4);
+            }
+        }
+    }
+
+    private HBox legendItem(Color color, String label) {
+        javafx.scene.shape.Rectangle rect = new javafx.scene.shape.Rectangle(14, 14, color);
+        rect.setArcWidth(3);
+        rect.setArcHeight(3);
+        Label lbl = new Label(label);
+        lbl.setStyle("-fx-font-size: 12px;");
+        HBox box = new HBox(4, rect, lbl);
+        box.setAlignment(Pos.CENTER_LEFT);
+        return box;
     }
 
     private static Spinner<Integer> hourSpinner(int initial) {
