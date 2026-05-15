@@ -310,21 +310,16 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 14 — Desktop GUI UI Revize
+### FAZ 14 — ✅ Tamamlandı
 
-**Sorumlu: Kerem** · **Hedef: Tüm JavaFX ekranları baştan ele alınıyor**
+**Commit:** B-green · **Tarih:** 2026-05-15 · **Sorumlu: Kerem**
 
-**Sorun:** Ekranlar default JavaFX gri, CSS sıfır, navigasyon eksik (koltuk haritasından geri dönülemez), legend yok, status'lar renksiz.
-
-#### Yapılacaklar
-- [ ] `src/main/resources/style.css` — global renk şeması, buton, kart, tablo stilleri
-- [ ] `LoginView` — ortalanmış kart tasarımı, mavi header şeridi, tam genişlik buton
-- [ ] `EventListView` — üst header bar (kullanıcı adı), özel `ListCell` kart, status badge
-- [ ] `SeatMapView` — üst header (← Geri), renk legend'ı, rezervasyon sonrası otomatik geri dönüş (bug fix)
-- [ ] `MyTicketsView` — status badge renkleri (CONFIRMED yeşil, PENDING sarı, CANCELLED kırmızı)
-- [ ] `AdminDashboardView` — mevcut yapıya CSS uyumu
-- [ ] **Commit:** `style(faz14): desktop gui ui revize — css, navigasyon, badge, legend`
-- [ ] **AGENTS.md güncelle**
+- `style.css` oluşturuldu: global renk paleti (#1565C0), `.btn-primary/secondary/ghost`, `.card`, `.header-bar`, `.badge-*`, `.event-card`, tablo stilleri.
+- `LoginView`: `StackPane` + `.card` kart tasarımı, "TBL324 / Event Ticketing" başlığı, tam genişlik primary buton, loading state.
+- `EventListView`: mavi header (kullanıcı adı sağda), özel `ListCell` kart (başlık + status badge), çift tıkla seç desteği.
+- `SeatMapView`: header'a `← Geri` butonu, renk legend'ı (Müsait/Seçili/Dolu), rezervasyon/ödeme sonrası `onBack` ile otomatik geri dönüş (bug fix).
+- `MyTicketsView`: status sütununa renkli badge (CONFIRMED yeşil, PENDING sarı, CANCELLED kırmızı).
+- `DesktopApp`: `makeScene()` helper ile her ekrana CSS otomatik yükleniyor; `currentUsername` eklendi; `showSeatMap` imzası `eventName` + `onBack` alacak şekilde güncellendi.
 
 ---
 
@@ -346,6 +341,6 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 11 — Biletlerim | Efe | ✅ | 2026-05-15 | 2026-05-15 | `8667f8d` B-green |
 | 12 — Ödeme akışı | Kerem | ✅ | 2026-05-15 | 2026-05-15 | B-green |
 | 13 — Admin paneli | Efe | ✅ | 2026-05-15 | 2026-05-15 | B-green |
-| 14 — UI revize | Kerem | 🟡 | 2026-05-15 | — | — |
+| 14 — UI revize | Kerem | ✅ | 2026-05-15 | 2026-05-15 | B-green |
 
 ⬜ Başlanmadı · 🟡 Devam ediyor · ✅ Tamamlandı

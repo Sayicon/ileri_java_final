@@ -9,7 +9,10 @@ import com.tbl324.desktop.view.MyTicketsView;
 import com.tbl324.desktop.view.SeatMapView;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.stage.Stage;
+
+import java.util.Objects;
 
 public class DesktopApp extends Application {
 
@@ -17,8 +20,9 @@ public class DesktopApp extends Application {
             "gateway.url", "http://localhost:8080");
 
     private ApiClient apiClient;
-    private Stage primaryStage;
-    private Long currentUserId = 1L;
+    private Stage     primaryStage;
+    private Long      currentUserId;
+    private String    currentUsername;
 
     @Override
     public void start(Stage stage) {
@@ -28,8 +32,19 @@ public class DesktopApp extends Application {
         stage.setTitle("TBL324 Event Ticketing");
         stage.setWidth(900);
         stage.setHeight(650);
+        stage.setMinWidth(700);
+        stage.setMinHeight(500);
         showLogin();
         stage.show();
+    }
+
+    private Scene makeScene(Parent root) {
+        Scene scene = new Scene(root, 900, 650);
+        String css = Objects.requireNonNull(
+                getClass().getResource("/com/tbl324/desktop/style.css"),
+                "style.css not found").toExternalForm();
+        scene.getStylesheets().add(css);
+        return scene;
     }
 
     private void showLogin() {
@@ -37,7 +52,8 @@ public class DesktopApp extends Application {
         LoginView login = new LoginView((username, password) -> {
             try {
                 apiClient.login(username, password);
-                currentUserId = apiClient.getUserId();
+                currentUserId   = apiClient.getUserId();
+                currentUsername = username;
                 if ("ADMIN".equals(apiClient.getRole())) {
                     showAdminDashboard();
                 } else {
@@ -50,29 +66,32 @@ public class DesktopApp extends Application {
             }
         });
         ref[0] = login;
-        primaryStage.setScene(new Scene(login, 900, 650));
+        primaryStage.setScene(makeScene(login));
     }
 
     private void showEventList() {
-        EventListView eventList = new EventListView(apiClient, currentUserId,
-                (event, userId) -> showSeatMap(event.id(), userId),
+        EventListView eventList = new EventListView(
+                apiClient, currentUserId, currentUsername,
+                (event, userId) -> showSeatMap(event.id(), event.title(), userId),
                 this::showMyTickets);
-        primaryStage.setScene(new Scene(eventList, 900, 650));
+        primaryStage.setScene(makeScene(eventList));
     }
 
-    private void showSeatMap(Long eventId, Long userId) {
-        SeatMapView seatMap = new SeatMapView(apiClient, eventId, userId);
-        primaryStage.setScene(new Scene(seatMap, 900, 650));
+    private void showSeatMap(Long eventId, String eventName, Long userId) {
+        SeatMapView seatMap = new SeatMapView(
+                apiClient, eventId, eventName, userId, this::showEventList);
+        primaryStage.setScene(makeScene(seatMap));
     }
 
     private void showMyTickets() {
-        MyTicketsView ticketsView = new MyTicketsView(apiClient, currentUserId, this::showEventList);
-        primaryStage.setScene(new Scene(ticketsView, 900, 650));
+        MyTicketsView ticketsView = new MyTicketsView(
+                apiClient, currentUserId, this::showEventList);
+        primaryStage.setScene(makeScene(ticketsView));
     }
 
     private void showAdminDashboard() {
         AdminDashboardView admin = new AdminDashboardView(apiClient);
-        primaryStage.setScene(new Scene(admin, 900, 650));
+        primaryStage.setScene(makeScene(admin));
     }
 
     public static void main(String[] args) {
