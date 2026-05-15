@@ -1399,5 +1399,5 @@ docker compose down -v
 
 ---
 
-*Kocaeli Üniversitesi, Bilgisayar Mühendisliği*
+*Kocaeli Üniversitesi, Bilişim Sistemleri Mühendisliği*
 *TBL324 İleri Java Uygulamaları — 2026 Bahar Dönemi*
