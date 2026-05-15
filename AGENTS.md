@@ -314,7 +314,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ### FAZ 12 — Rezervasyon → Ödeme → Onay Akışı
 
-**Sorumlu: Efe** · **Hedef: Tam biletleme döngüsü — reserve → confirm**
+**Sorumlu: Kerem** · **Hedef: Tam biletleme döngüsü — reserve → confirm**
 
 **Sorun:** Backend'de `POST /tickets/{id}/confirm` var (PaymentType: CASH/CREDIT_CARD) ama hiç çağrılmıyor. Rezervasyon RESERVED'da kalıyor, CONFIRMED'a geçmiyor. Ödeme adımı olmadan uygulama yarım.
 
@@ -396,8 +396,8 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 8 — dockerize | Kerem | ✅ | 2026-05-14 | 2026-05-14 | `2e313d3` B-green |
 | 9 — performance | Efe | ✅ | 2026-05-14 | 2026-05-15 | `57b0c74` B-green |
 | 10 — README + son | Kerem | ✅ | 2026-05-15 | 2026-05-15 | B-green |
-| 11 — Biletlerim | Efe | ⬜ | — | — | — |
-| 12 — Ödeme akışı | Efe | ⬜ | — | — | — |
+| 11 — Biletlerim | Efe | ✅ | 2026-05-15 | 2026-05-15 | `8667f8d` B-green |
+| 12 — Ödeme akışı | Kerem | ⬜ | — | — | — |
 | 13 — Admin paneli | Efe | ⬜ | — | — | — |
 
 ⬜ Başlanmadı · 🟡 Devam ediyor · ✅ Tamamlandı
