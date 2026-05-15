@@ -1,0 +1,82 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.tbl324:desktop-gui >-----------------------
+[INFO] Building desktop-gui 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ desktop-gui ---
+[INFO] skip non existing resourceDirectory C:\Users\efesu\OneDrive\Masaüstü\workspace\ileri_java_final\desktop-gui\src\main\resources
+[INFO] skip non existing resourceDirectory C:\Users\efesu\OneDrive\Masaüstü\workspace\ileri_java_final\desktop-gui\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ desktop-gui ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ desktop-gui ---
+[INFO] skip non existing resourceDirectory C:\Users\efesu\OneDrive\Masaüstü\workspace\ileri_java_final\desktop-gui\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ desktop-gui ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ desktop-gui ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.tbl324.desktop.client.ApiClientTest
+[ERROR] Tests run: 11, Failures: 0, Errors: 2, Skipped: 0, Time elapsed: 1.059 s <<< FAILURE! -- in com.tbl324.desktop.client.ApiClientTest
+[ERROR] com.tbl324.desktop.client.ApiClientTest.getAllTickets_success_returnsTicketList -- Time elapsed: 0.011 s <<< ERROR!
+java.lang.Error: 
+Unresolved compilation problem: 
+	The method getAllTickets() is undefined for the type ApiClient
+
+	at com.tbl324.desktop.client.ApiClientTest.getAllTickets_success_returnsTicketList(ApiClientTest.java:172)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at java.base/java.util.ArrayList.forEach(Unknown Source)
+	at java.base/java.util.ArrayList.forEach(Unknown Source)
+
+[ERROR] com.tbl324.desktop.client.ApiClientTest.createEvent_success_returnsEventDTO -- Time elapsed: 0.009 s <<< ERROR!
+java.lang.Error: 
+Unresolved compilation problem: 
+	The method createEvent(String, String, long, String, String) is undefined for the type ApiClient
+
+	at com.tbl324.desktop.client.ApiClientTest.createEvent_success_returnsEventDTO(ApiClientTest.java:156)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at java.base/java.util.ArrayList.forEach(Unknown Source)
+	at java.base/java.util.ArrayList.forEach(Unknown Source)
+
+[INFO] Running com.tbl324.desktop.model.SeatColorMapperTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in com.tbl324.desktop.model.SeatColorMapperTest
+[INFO] Running com.tbl324.desktop.model.SeatGridTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in com.tbl324.desktop.model.SeatGridTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Errors: 
+[ERROR]   ApiClientTest.createEvent_success_returnsEventDTO:156  Unresolved compilation problem: 
+	The method createEvent(String, String, long, String, String) is undefined for the type ApiClient
+
+[ERROR]   ApiClientTest.getAllTickets_success_returnsTicketList:172  Unresolved compilation problem: 
+	The method getAllTickets() is undefined for the type ApiClient
+
+[INFO] 
+[ERROR] Tests run: 22, Failures: 0, Errors: 2, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  3.077 s
+[INFO] Finished at: 2026-05-15T17:34:54+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.2.5:test (default-test) on project desktop-gui: 
+[ERROR] 
+[ERROR] Please refer to C:\Users\efesu\OneDrive\Masaüstü\workspace\ileri_java_final\desktop-gui\target\surefire-reports for the individual test results.
+[ERROR] Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -30,6 +30,20 @@ class TicketControllerTest {
     @MockBean  TicketService ticketService;
 
     @Test
+    void getAllTickets_returnsAllTickets() throws Exception {
+        TicketDTO t1 = new TicketDTO(1L, 1L, 5L, 10L, TicketStatus.CONFIRMED);
+        TicketDTO t2 = new TicketDTO(2L, 1L, 6L, 11L, TicketStatus.PENDING);
+        when(ticketService.getAllTickets()).thenReturn(List.of(t1, t2));
+
+        mockMvc.perform(get("/tickets"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].status").value("CONFIRMED"))
+                .andExpect(jsonPath("$[1].status").value("PENDING"));
+    }
+
+    @Test
     void getMyTickets_returnsTicketList() throws Exception {
         TicketDTO dto = new TicketDTO(1L, 1L, 5L, 10L, TicketStatus.CONFIRMED);
         when(ticketService.getMyTickets(10L)).thenReturn(List.of(dto));

@@ -77,6 +77,12 @@ public class TicketJdbcRepository extends BaseJdbcRepository<TicketDTO> {
                 rowMapper(), userId);
     }
 
+    public List<TicketDTO> findAll() {
+        return jdbc.query(
+                "SELECT id, event_id, seat_id, user_id, status FROM tickets ORDER BY id DESC",
+                rowMapper());
+    }
+
     public void deleteExpired() {
         jdbc.update("UPDATE tickets SET status = 'EXPIRED' WHERE status = 'PENDING' AND expires_at < ?",
                 Timestamp.valueOf(LocalDateTime.now()));

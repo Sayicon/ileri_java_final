@@ -143,4 +143,35 @@ class ApiClientTest {
 
         assertThat(tickets).isEmpty();
     }
+
+    @Test
+    void createEvent_success_returnsEventDTO() throws Exception {
+        apiClient.setToken("test-token");
+        server.stubFor(post(urlEqualTo("/api/events"))
+                .willReturn(aResponse()
+                        .withStatus(201)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"success\":true,\"data\":{\"id\":3,\"title\":\"Yeni Konser\",\"description\":\"Test\",\"venueId\":1,\"status\":\"ACTIVE\"}}")));
+
+        EventDTO event = apiClient.createEvent("Yeni Konser", "Test", 1L,
+                "2027-06-01T20:00:00", "2027-06-01T23:00:00");
+
+        assertThat(event.id()).isEqualTo(3L);
+        assertThat(event.title()).isEqualTo("Yeni Konser");
+    }
+
+    @Test
+    void getAllTickets_success_returnsTicketList() throws Exception {
+        apiClient.setToken("test-token");
+        server.stubFor(get(urlEqualTo("/api/tickets"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("[{\"id\":1,\"eventId\":1,\"seatId\":5,\"userId\":10,\"status\":\"CONFIRMED\"},{\"id\":2,\"eventId\":1,\"seatId\":6,\"userId\":11,\"status\":\"PENDING\"}]")));
+
+        List<TicketDTO> tickets = apiClient.getAllTickets();
+
+        assertThat(tickets).hasSize(2);
+        assertThat(tickets.get(0).status()).isEqualTo("CONFIRMED");
+    }
 }
