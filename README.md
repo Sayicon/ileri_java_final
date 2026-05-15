@@ -29,7 +29,7 @@
 13. [Performans Testleri](#13-performans-testleri)
 14. [Docker ve Dağıtım](#14-docker-ve-dağıtım)
 15. [Veritabanı Tasarımı](#15-veritabanı-tasarımı)
-16. [Kurulum Kılavuzu](#16-kurulum-kılavuzu)
+16. [Kurulum ve Çalıştırma Kılavuzu](#16-kurulum-ve-çalıştırma-kılavuzu)
 17. [Tasarım Kararları](#17-tasarım-kararları)
 18. [Görev Dağılımı](#18-görev-dağılımı)
 19. [Bilinen Sınırlılıklar](#19-bilinen-sınırlılıklar)
@@ -725,6 +725,29 @@ Thread.ofVirtual().start(() -> {
 });
 ```
 
+### 9.7 Ekran Görüntüleri
+
+#### Giriş Ekranı
+![Giriş Ekranı](screenshots/login.png)
+
+#### Etkinlik Listesi
+![Etkinlik Listesi](screenshots/event-list.png)
+
+#### Koltuk Haritası (Canvas)
+![Koltuk Haritası](screenshots/seat-map.png)
+
+#### Ödeme Diyaloğu
+![Ödeme Diyaloğu](screenshots/payment-dialog.png)
+
+#### Biletlerim
+![Biletlerim](screenshots/my-tickets.png)
+
+#### Admin Dashboard — Etkinlikler
+![Admin Dashboard](screenshots/admin-events.png)
+
+#### Admin Dashboard — Tüm Rezervasyonlar
+![Admin Rezervasyonlar](screenshots/admin-tickets.png)
+
 ---
 
 ## 10. Tasarım Desenleri ve SOLID
@@ -1152,63 +1175,151 @@ SOLD (CONFIRM)   AVAILABLE
 
 ---
 
-## 16. Kurulum Kılavuzu
+## 16. Kurulum ve Çalıştırma Kılavuzu
 
-### Ön Koşullar
+### 16.1 Gereksinimler
 
-- Docker Desktop (v24+)
-- Git
+Sistemi çalıştırmak için yalnızca iki araç yeterlidir:
 
-> Java veya Maven kurulu olması gerekmez — Maven Wrapper ve Docker her şeyi sağlar.
+| Araç | Neden gerekli | İndirme |
+|---|---|---|
+| **Docker Desktop** | Tüm backend servisleri, veritabanları ve Redis Docker içinde çalışır | https://www.docker.com/products/docker-desktop |
+| **JDK 21** | Yalnızca JavaFX desktop arayüzü için gereklidir | https://adoptium.net (Eclipse Temurin 21) |
 
-### Hızlı Başlangıç
+> **Not:** Maven kurulu olması **gerekmez**. Proje içindeki `mvnw.cmd` (Windows) veya `mvnw` (Linux/macOS) Maven'i otomatik olarak indirir.
+
+---
+
+### 16.2 Backend'i Başlatma (Docker Compose)
+
+**Adım 1 — Repoyu klonlayın**
 
 ```bash
-# 1. Repoyu klonla
 git clone https://github.com/Sayicon/ileri_java_final.git
 cd ileri_java_final
-
-# 2. Ortam değişkenlerini ayarla
-cp .env.example .env
-# .env dosyasını düzenle: JWT_SECRET en az 32 karakter olmalı
-
-# 3. Derle ve başlat
-make build
-make up
-
-# 4. Servislerin hazır olmasını bekle (~30 saniye)
-make ps
-
-# 5. Smoke test
-make smoke
 ```
 
-### Erişim Noktaları
+**Adım 2 — Ortam değişkenlerini ayarlayın**
 
-| Servis | URL |
-|---|---|
-| API Gateway | http://localhost:8080 |
-| Auth Swagger | http://localhost:8081/swagger-ui.html |
-| Event Swagger | http://localhost:8082/swagger-ui.html |
-| Ticket Swagger | http://localhost:8083/swagger-ui.html |
-| Notification Swagger | http://localhost:8084/swagger-ui.html |
-
-### Desktop GUI Başlatma
+`.env.example` dosyasını `.env` olarak kopyalayın:
 
 ```bash
-# Desktop modülünü Maven ile çalıştır
+# Linux / macOS
+cp .env.example .env
+
+# Windows (PowerShell)
+Copy-Item .env.example .env
+```
+
+`.env` dosyasını bir metin editörüyle açıp `JWT_SECRET` değerini en az 32 karakterlik bir şifreyle değiştirin:
+
+```
+POSTGRES_USER=tbl324
+POSTGRES_PASSWORD=changeme
+JWT_SECRET=bu-satirda-en-az-32-karakter-olmali-123
+```
+
+**Adım 3 — Servisleri derleyip başlatın**
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+Bu komut şunları başlatır:
+- 4 mikroservis (auth, event, ticket, notification)
+- 4 ayrı PostgreSQL veritabanı
+- Redis
+- Spring Cloud Gateway
+
+İlk `build` internet bağlantısına göre 3-10 dakika sürebilir. Sonraki başlatmalar çok daha hızlıdır.
+
+**Adım 4 — Servislerin hazır olduğunu kontrol edin**
+
+```bash
+docker compose ps
+```
+
+Tüm servislerin `healthy` veya `running` durumunda olması gerekir (~30 saniye bekleyin). Örnek çıktı:
+
+```
+NAME                  STATUS
+gateway               running
+service-auth          healthy
+service-event         healthy
+service-ticket        healthy
+service-notification  running
+```
+
+**Adım 5 — API'yi tarayıcıdan test edin**
+
+Aşağıdaki adreslerden her servisin Swagger arayüzüne erişebilirsiniz:
+
+| Servis | Swagger UI |
+|---|---|
+| Gateway (ana giriş) | http://localhost:8080 |
+| Auth | http://localhost:8081/swagger-ui.html |
+| Event | http://localhost:8082/swagger-ui.html |
+| Ticket | http://localhost:8083/swagger-ui.html |
+| Notification | http://localhost:8084/swagger-ui.html |
+
+---
+
+### 16.3 Desktop GUI'yi Başlatma
+
+Backend çalışırken ayrı bir terminal açın ve şu komutu çalıştırın:
+
+```bash
+# Windows
+cd desktop-gui
+..\mvnw.cmd javafx:run
+
+# Linux / macOS
 cd desktop-gui
 ../mvnw javafx:run
 ```
 
-Veya IntelliJ IDEA'dan `DesktopApp.main()` çalıştırılabilir.
+İlk çalıştırmada Maven bağımlılıkları indirir (~1-2 dakika). JavaFX penceresi açıldığında uygulama hazır demektir.
 
-### Varsayılan Kullanıcılar (Seed Data)
+**IntelliJ IDEA ile çalıştırma:** `desktop-gui/src/main/java/com/tbl324/desktop/DesktopApp.java` dosyasını açıp `main()` metoduna sağ tıklayarak `Run` seçin.
 
-| Kullanıcı | Şifre | Rol |
-|---|---|---|
-| admin1 | password123 | ADMIN |
-| user1 | password123 | USER |
+---
+
+### 16.4 İlk Kullanım
+
+Sistem açılışta aşağıdaki hazır kullanıcıları otomatik olarak oluşturur:
+
+| Kullanıcı adı | Şifre | Rol | Yetkiler |
+|---|---|---|---|
+| `admin1` | `password123` | ADMIN | Etkinlik oluşturma, tüm rezervasyonları görme, bilet onaylama |
+| `user1` | `password123` | USER | Koltuk seçme, rezervasyon yapma, ödeme, biletlerini görme |
+
+**Tipik kullanıcı akışı:**
+
+1. Giriş ekranında `user1 / password123` ile giriş yapın
+2. Etkinlik listesinden bir etkinliğe çift tıklayın
+3. Koltuk haritasında yeşil (müsait) koltuklara tıklayarak seçin
+4. **Rezerve Et** butonuna basın
+5. Ödeme yöntemi seçin (Nakit veya Kredi Kartı)
+6. **Biletlerim** ekranından onaylanan biletinizi görün
+
+**Admin akışı:**
+
+1. `admin1 / password123` ile giriş yapın
+2. **Etkinlikler** sekmesinden yeni etkinlik oluşturun
+3. **Tüm Rezervasyonlar** sekmesinden bekleyen biletleri onaylayın
+
+---
+
+### 16.5 Sistemi Durdurma
+
+```bash
+# Servisleri durdur (veriler korunur)
+docker compose down
+
+# Servisleri durdur ve tüm verileri sil (sıfırdan başlamak için)
+docker compose down -v
+```
 
 ---
 
