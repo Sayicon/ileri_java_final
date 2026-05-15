@@ -49,7 +49,7 @@ public class DesktopApp extends Application {
 
     private void showLogin() {
         LoginView[] ref = new LoginView[1];
-        LoginView login = new LoginView((username, password) -> {
+        LoginView login = new LoginView(apiClient, (username, password) -> {
             try {
                 apiClient.login(username, password);
                 currentUserId   = apiClient.getUserId();

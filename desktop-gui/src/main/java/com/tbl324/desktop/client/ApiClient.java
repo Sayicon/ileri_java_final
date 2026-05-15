@@ -138,6 +138,18 @@ public class ApiClient {
         sendJson(req);
     }
 
+    public void register(String username, String email, String password) throws ApiException {
+        String body = String.format(
+                "{\"username\":\"%s\",\"email\":\"%s\",\"password\":\"%s\"}",
+                username, email, password);
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/api/auth/register"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+        sendVoid(req);
+    }
+
     public List<VenueDTO> getVenues() throws ApiException {
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/api/events/venues"))

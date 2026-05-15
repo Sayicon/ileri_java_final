@@ -1,5 +1,6 @@
 package com.tbl324.desktop.view;
 
+import com.tbl324.desktop.client.ApiClient;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -14,8 +15,12 @@ public class LoginView extends StackPane {
     private final TextField     usernameField = new TextField();
     private final PasswordField passwordField = new PasswordField();
     private final Label         errorLabel    = new Label();
+    private Button              loginBtn;
 
-    public LoginView(BiConsumer<String, String> onLogin) {
+    private final ApiClient apiClient;
+
+    public LoginView(ApiClient apiClient, BiConsumer<String, String> onLogin) {
+        this.apiClient = apiClient;
         buildUi(onLogin);
     }
 
@@ -28,7 +33,7 @@ public class LoginView extends StackPane {
         card.setMaxWidth(400);
         card.setSpacing(0);
 
-        // Blue header band
+        // Header
         VBox cardHeader = new VBox(4);
         cardHeader.setAlignment(Pos.CENTER);
         cardHeader.setPadding(new Insets(0, 0, 24, 0));
@@ -72,7 +77,7 @@ public class LoginView extends StackPane {
         VBox.setMargin(errorLabel, new Insets(8, 0, 0, 0));
 
         // Login button
-        Button loginBtn = new Button("Giriş Yap");
+        loginBtn = new Button("Giriş Yap");
         loginBtn.getStyleClass().add("btn-primary");
         loginBtn.setMaxWidth(Double.MAX_VALUE);
         loginBtn.setDefaultButton(true);
@@ -93,25 +98,100 @@ public class LoginView extends StackPane {
 
         passwordField.setOnAction(e -> loginBtn.fire());
 
-        card.getChildren().addAll(cardHeader, form, errorLabel, loginBtn);
+        // Register link
+        Button registerLink = new Button("Hesabınız yok mu? Kayıt Olun");
+        registerLink.setStyle("-fx-background-color: transparent; -fx-text-fill: #1565C0; "
+                + "-fx-font-size: 12px; -fx-cursor: hand; -fx-underline: true;");
+        registerLink.setMaxWidth(Double.MAX_VALUE);
+        registerLink.setAlignment(Pos.CENTER);
+        VBox.setMargin(registerLink, new Insets(8, 0, 0, 0));
+        registerLink.setOnAction(e -> showRegisterDialog());
+
+        card.getChildren().addAll(cardHeader, form, errorLabel, loginBtn, registerLink);
 
         setAlignment(Pos.CENTER);
         getChildren().add(card);
     }
 
+    private void showRegisterDialog() {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Kayıt Ol");
+        dialog.setHeaderText("Yeni hesap oluşturun");
+
+        ButtonType kayitBtn = new ButtonType("Kayıt Ol", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(kayitBtn, ButtonType.CANCEL);
+
+        TextField regUsername = new TextField();
+        regUsername.setPromptText("Kullanıcı adı");
+        regUsername.setPrefHeight(36);
+
+        TextField regEmail = new TextField();
+        regEmail.setPromptText("E-posta");
+        regEmail.setPrefHeight(36);
+
+        PasswordField regPassword = new PasswordField();
+        regPassword.setPromptText("Şifre");
+        regPassword.setPrefHeight(36);
+
+        PasswordField regPasswordConfirm = new PasswordField();
+        regPasswordConfirm.setPromptText("Şifre (tekrar)");
+        regPasswordConfirm.setPrefHeight(36);
+
+        Label regError = new Label();
+        regError.setStyle("-fx-text-fill: #C62828; -fx-font-size: 12px;");
+        regError.setWrapText(true);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(16));
+        grid.setMinWidth(360);
+        grid.add(new Label("Kullanıcı Adı:"), 0, 0); grid.add(regUsername,        1, 0);
+        grid.add(new Label("E-posta:"),       0, 1); grid.add(regEmail,           1, 1);
+        grid.add(new Label("Şifre:"),         0, 2); grid.add(regPassword,        1, 2);
+        grid.add(new Label("Şifre (tekrar):"),0, 3); grid.add(regPasswordConfirm, 1, 3);
+        grid.add(regError,                    0, 4, 2, 1);
+
+        dialog.getDialogPane().setContent(grid);
+        javafx.application.Platform.runLater(regUsername::requestFocus);
+
+        // Kayıt Ol butonunu tıklama davranışını override et — hata varsa kapat
+        javafx.scene.Node okButton = dialog.getDialogPane().lookupButton(kayitBtn);
+        okButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+            String u = regUsername.getText().trim();
+            String em = regEmail.getText().trim();
+            String p = regPassword.getText();
+            String p2 = regPasswordConfirm.getText();
+
+            if (u.isEmpty() || em.isEmpty() || p.isEmpty()) {
+                regError.setText("Tüm alanlar zorunludur.");
+                event.consume();
+                return;
+            }
+            if (!p.equals(p2)) {
+                regError.setText("Şifreler eşleşmiyor.");
+                event.consume();
+                return;
+            }
+
+            try {
+                apiClient.register(u, em, p);
+                // Başarılı — kullanıcı adını login formuna doldur
+                usernameField.setText(u);
+                passwordField.clear();
+                passwordField.requestFocus();
+            } catch (Exception ex) {
+                regError.setText("Kayıt başarısız: " + ex.getMessage());
+                event.consume();
+            }
+        });
+
+        dialog.showAndWait();
+    }
+
     public void showError(String msg) {
         errorLabel.setText(msg);
-        // Re-enable button on error
-        getChildren().stream()
-                .filter(n -> n instanceof VBox)
-                .map(n -> (VBox) n)
-                .flatMap(v -> v.getChildren().stream())
-                .filter(n -> n instanceof Button)
-                .map(n -> (Button) n)
-                .findFirst()
-                .ifPresent(btn -> {
-                    btn.setDisable(false);
-                    btn.setText("Giriş Yap");
-                });
+        loginBtn.setDisable(false);
+        loginBtn.setText("Giriş Yap");
     }
 }
