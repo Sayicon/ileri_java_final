@@ -105,7 +105,9 @@ public class MyTicketsView extends BorderPane {
         statusLabel.setText("Yükleniyor...");
         Thread.ofVirtual().start(() -> {
             try {
-                List<TicketDTO> tickets = apiClient.getMyTickets(userId);
+                List<TicketDTO> tickets = apiClient.getMyTickets(userId).stream()
+                        .filter(t -> "CONFIRMED".equalsIgnoreCase(t.status()))
+                        .toList();
                 javafx.application.Platform.runLater(() -> {
                     table.setItems(FXCollections.observableArrayList(tickets));
                     statusLabel.setText(tickets.size() + " bilet");
