@@ -14,7 +14,9 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -190,7 +192,6 @@ public class AdminDashboardView extends BorderPane {
     }
 
     private void showCreateEventDialog(TableView<EventDTO> table, Label statusLabel) {
-        // Önce salonları yükle
         List<VenueDTO> venues;
         try {
             venues = apiClient.getVenues();
@@ -212,8 +213,6 @@ public class AdminDashboardView extends BorderPane {
 
         TextField titleField = new TextField();
         TextField descField  = new TextField();
-        TextField startField = new TextField("2027-12-01T20:00:00");
-        TextField endField   = new TextField("2027-12-01T23:00:00");
 
         ComboBox<VenueDTO> venueBox = new ComboBox<>(FXCollections.observableArrayList(venues));
         venueBox.setCellFactory(lv -> new ListCell<>() {
@@ -226,6 +225,23 @@ public class AdminDashboardView extends BorderPane {
         venueBox.getSelectionModel().selectFirst();
         venueBox.setMaxWidth(Double.MAX_VALUE);
 
+        // Tarih seçici + saat Spinner
+        DatePicker startDatePicker = new DatePicker(LocalDate.now().plusDays(1));
+        Spinner<Integer> startHourSpinner = hourSpinner(20);
+        Spinner<Integer> startMinSpinner  = minuteSpinner(0);
+
+        DatePicker endDatePicker = new DatePicker(LocalDate.now().plusDays(1));
+        Spinner<Integer> endHourSpinner = hourSpinner(23);
+        Spinner<Integer> endMinSpinner  = minuteSpinner(0);
+
+        HBox startBox = new HBox(6, startDatePicker, new Label("Saat:"), startHourSpinner, new Label(":"), startMinSpinner);
+        startBox.setAlignment(Pos.CENTER_LEFT);
+        HBox endBox   = new HBox(6, endDatePicker,   new Label("Saat:"), endHourSpinner,   new Label(":"), endMinSpinner);
+        endBox.setAlignment(Pos.CENTER_LEFT);
+
+        Label errorLabel = new Label();
+        errorLabel.setStyle("-fx-text-fill: #C62828; -fx-font-size: 12px;");
+
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(8);
@@ -233,24 +249,45 @@ public class AdminDashboardView extends BorderPane {
         grid.add(new Label("Başlık:"),    0, 0); grid.add(titleField, 1, 0);
         grid.add(new Label("Açıklama:"), 0, 1); grid.add(descField,  1, 1);
         grid.add(new Label("Salon:"),    0, 2); grid.add(venueBox,   1, 2);
-        grid.add(new Label("Başlangıç:"),0, 3); grid.add(startField, 1, 3);
-        grid.add(new Label("Bitiş:"),    0, 4); grid.add(endField,   1, 4);
+        grid.add(new Label("Başlangıç:"),0, 3); grid.add(startBox,   1, 3);
+        grid.add(new Label("Bitiş:"),    0, 4); grid.add(endBox,     1, 4);
+        grid.add(errorLabel,             0, 5, 2, 1);
 
         dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().setPrefWidth(520);
         javafx.application.Platform.runLater(titleField::requestFocus);
+
+        // "Oluştur" butonunu; tarih/saat doğrulamadan geçmezse kapat
+        javafx.scene.Node okBtn = dialog.getDialogPane().lookupButton(createBtn);
+        okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+            if (titleField.getText().trim().isEmpty()) {
+                errorLabel.setText("Başlık boş olamaz.");
+                event.consume();
+                return;
+            }
+            LocalDateTime start = toDateTime(startDatePicker, startHourSpinner, startMinSpinner);
+            LocalDateTime end   = toDateTime(endDatePicker,   endHourSpinner,   endMinSpinner);
+            if (!end.isAfter(start)) {
+                errorLabel.setText("Bitiş tarihi başlangıçtan sonra olmalı.");
+                event.consume();
+            }
+        });
 
         Optional<ButtonType> result = dialog.showAndWait();
         if (result.isPresent() && result.get() == createBtn) {
             VenueDTO selected = venueBox.getSelectionModel().getSelectedItem();
             if (selected == null) return;
+            LocalDateTime start = toDateTime(startDatePicker, startHourSpinner, startMinSpinner);
+            LocalDateTime end   = toDateTime(endDatePicker,   endHourSpinner,   endMinSpinner);
+            String startIso = start.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            String endIso   = end.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
             Thread.ofVirtual().start(() -> {
                 try {
                     apiClient.createEvent(
                             titleField.getText().trim(),
                             descField.getText().trim(),
                             selected.id(),
-                            startField.getText().trim(),
-                            endField.getText().trim());
+                            startIso, endIso);
                     javafx.application.Platform.runLater(() -> loadEvents(table, statusLabel));
                 } catch (Exception ex) {
                     javafx.application.Platform.runLater(() ->
@@ -258,6 +295,25 @@ public class AdminDashboardView extends BorderPane {
                 }
             });
         }
+    }
+
+    private static Spinner<Integer> hourSpinner(int initial) {
+        Spinner<Integer> s = new Spinner<>(0, 23, initial);
+        s.setEditable(true);
+        s.setPrefWidth(65);
+        return s;
+    }
+
+    private static Spinner<Integer> minuteSpinner(int initial) {
+        Spinner<Integer> s = new Spinner<>(0, 59, initial, 5);
+        s.setEditable(true);
+        s.setPrefWidth(65);
+        return s;
+    }
+
+    private static LocalDateTime toDateTime(DatePicker dp, Spinner<Integer> hour, Spinner<Integer> min) {
+        LocalDate date = dp.getValue() != null ? dp.getValue() : LocalDate.now().plusDays(1);
+        return date.atTime(hour.getValue(), min.getValue());
     }
 
     private Tab buildVenuesTab() {

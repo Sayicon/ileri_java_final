@@ -191,7 +191,7 @@ public class ApiClient {
         try {
             HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
             if (resp.statusCode() < 200 || resp.statusCode() >= 300)
-                throw new ApiException(resp.statusCode());
+                throw new ApiException(resp.statusCode(), resp.body());
             return mapper.readTree(resp.body());
         } catch (ApiException e) {
             throw e;
@@ -202,9 +202,9 @@ public class ApiClient {
 
     private void sendVoid(HttpRequest req) throws ApiException {
         try {
-            HttpResponse<Void> resp = http.send(req, HttpResponse.BodyHandlers.discarding());
+            HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
             if (resp.statusCode() < 200 || resp.statusCode() >= 300)
-                throw new ApiException(resp.statusCode());
+                throw new ApiException(resp.statusCode(), resp.body());
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {

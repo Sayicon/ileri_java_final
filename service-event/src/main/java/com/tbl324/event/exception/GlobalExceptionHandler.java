@@ -5,9 +5,12 @@ import com.tbl324.shared.exception.ConflictException;
 import com.tbl324.shared.exception.DomainException;
 import com.tbl324.shared.exception.NotFoundException;
 import com.tbl324.shared.exception.ValidationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,6 +22,8 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ProblemDetail> handleNotFound(NotFoundException ex) {
@@ -45,6 +50,13 @@ public class GlobalExceptionHandler {
         return problem(HttpStatus.BAD_REQUEST, "Bad Request", "Doğrulama hatası", errors);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ProblemDetail> handleMessageNotReadable(HttpMessageNotReadableException ex) {
+        String cause = ex.getMostSpecificCause().getMessage();
+        return problem(HttpStatus.BAD_REQUEST, "Bad Request",
+                "Geçersiz istek formatı: " + cause, null);
+    }
+
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<ProblemDetail> handleDomain(DomainException ex) {
         HttpStatus status = HttpStatus.resolve(ex.getHttpStatus());
@@ -54,6 +66,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleGeneral(Exception ex) {
+        log.error("Unhandled exception", ex);
         return problem(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", ex.getMessage(), null);
     }
 
