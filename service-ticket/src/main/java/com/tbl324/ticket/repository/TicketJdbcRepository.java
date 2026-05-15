@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public class TicketJdbcRepository extends BaseJdbcRepository<TicketDTO> {
@@ -68,6 +69,12 @@ public class TicketJdbcRepository extends BaseJdbcRepository<TicketDTO> {
             jdbc.update("UPDATE tickets SET status = ? WHERE id = ?", dto.status().name(), dto.id());
             return dto;
         }
+    }
+
+    public List<TicketDTO> findByUserId(Long userId) {
+        return jdbc.query(
+                "SELECT id, event_id, seat_id, user_id, status FROM tickets WHERE user_id = ? ORDER BY id DESC",
+                rowMapper(), userId);
     }
 
     public void deleteExpired() {

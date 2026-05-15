@@ -18,8 +18,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".EventListActivity" android:exported="false" />
-        <activity android:name=".SeatMapActivity"   android:exported="false" />
+        <activity android:name=".EventListActivity"  android:exported="false" />
+        <activity android:name=".SeatMapActivity"    android:exported="false" />
+        <activity android:name=".MyTicketsActivity"  android:exported="false" />
 
     </application>
 

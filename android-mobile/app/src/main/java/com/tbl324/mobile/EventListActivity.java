@@ -7,6 +7,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -48,6 +49,17 @@ public class EventListActivity extends Activity {
         header.setBackgroundColor(0xFF1565C0);
         header.setPadding(padH, (int) (18 * d), padH, (int) (18 * d));
         root.addView(header);
+
+        // Biletlerim button
+        Button ticketsBtn = new Button(this);
+        ticketsBtn.setText("Biletlerim");
+        ticketsBtn.setOnClickListener(v ->
+                startActivity(new Intent(this, MyTicketsActivity.class)));
+        LinearLayout.LayoutParams ticketsBtnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        ticketsBtnParams.setMargins(padH, (int) (6 * d), padH, 0);
+        root.addView(ticketsBtn, ticketsBtnParams);
 
         // Scrollable list
         ScrollView scroll = new ScrollView(this);

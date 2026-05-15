@@ -3,6 +3,7 @@ package com.tbl324.desktop.client;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.tbl324.desktop.model.EventDTO;
+import com.tbl324.desktop.model.TicketDTO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,5 +71,36 @@ class ApiClientTest {
 
         assertThatThrownBy(() -> apiClient.getEvents())
                 .isInstanceOf(ApiException.class);
+    }
+
+    @Test
+    void getMyTickets_success_returnsTicketList() throws Exception {
+        apiClient.setToken("test-token");
+        server.stubFor(get(urlPathEqualTo("/api/tickets/my"))
+                .withQueryParam("userId", equalTo("10"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("[{\"id\":1,\"eventId\":1,\"seatId\":5,\"userId\":10,\"status\":\"CONFIRMED\"}]")));
+
+        List<TicketDTO> tickets = apiClient.getMyTickets(10L);
+
+        assertThat(tickets).hasSize(1);
+        assertThat(tickets.get(0).status()).isEqualTo("CONFIRMED");
+    }
+
+    @Test
+    void getMyTickets_emptyList_returnsEmpty() throws Exception {
+        apiClient.setToken("test-token");
+        server.stubFor(get(urlPathEqualTo("/api/tickets/my"))
+                .withQueryParam("userId", equalTo("99"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("[]")));
+
+        List<TicketDTO> tickets = apiClient.getMyTickets(99L);
+
+        assertThat(tickets).isEmpty();
     }
 }

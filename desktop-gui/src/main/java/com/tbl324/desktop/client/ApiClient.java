@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tbl324.desktop.model.EventDTO;
 import com.tbl324.desktop.model.SeatDTO;
+import com.tbl324.desktop.model.TicketDTO;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,6 +13,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
+
 
 public class ApiClient {
 
@@ -73,6 +75,15 @@ public class ApiClient {
         // response: {success, data: [...]}
         return mapper.convertValue(body.get("data"),
                 new TypeReference<List<SeatDTO>>() {});
+    }
+
+    public List<TicketDTO> getMyTickets(Long userId) throws ApiException {
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/api/tickets/my?userId=" + userId))
+                .header("Authorization", "Bearer " + token)
+                .GET().build();
+        JsonNode body = sendJson(req);
+        return mapper.convertValue(body, new TypeReference<List<TicketDTO>>() {});
     }
 
     public void reserve(Long eventId, Long seatId, Long userId) throws ApiException {

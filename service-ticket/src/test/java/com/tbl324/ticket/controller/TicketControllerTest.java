@@ -14,6 +14,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
@@ -26,6 +28,27 @@ class TicketControllerTest {
     @Autowired MockMvc mockMvc;
     @Autowired ObjectMapper objectMapper;
     @MockBean  TicketService ticketService;
+
+    @Test
+    void getMyTickets_returnsTicketList() throws Exception {
+        TicketDTO dto = new TicketDTO(1L, 1L, 5L, 10L, TicketStatus.CONFIRMED);
+        when(ticketService.getMyTickets(10L)).thenReturn(List.of(dto));
+
+        mockMvc.perform(get("/tickets/my").param("userId", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].status").value("CONFIRMED"));
+    }
+
+    @Test
+    void getMyTickets_emptyList_returnsEmptyArray() throws Exception {
+        when(ticketService.getMyTickets(99L)).thenReturn(List.of());
+
+        mockMvc.perform(get("/tickets/my").param("userId", "99"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+    }
 
     @Test
     void reserve_validRequest_returns201() throws Exception {

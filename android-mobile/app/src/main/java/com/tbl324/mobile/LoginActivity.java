@@ -120,6 +120,12 @@ public class LoginActivity extends Activity {
                     String token = response.body().get("token");
                     if (token != null) {
                         ApiClient.getInstance().setToken(token);
+                        String userIdStr = response.body().get("userId");
+                        if (userIdStr != null) {
+                            try {
+                                ApiClient.getInstance().setUserId(Double.valueOf(userIdStr).longValue());
+                            } catch (NumberFormatException ignored) {}
+                        }
                         startActivity(new Intent(LoginActivity.this, EventListActivity.class));
                         finish();
                     }

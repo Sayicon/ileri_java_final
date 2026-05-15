@@ -19,6 +19,7 @@ public class ApiClient {
     private static ApiClient instance;
     private final ApiService service;
     private String token;
+    private long userId = -1L;
 
     private ApiClient() {
         OkHttpClient http = new OkHttpClient.Builder()
@@ -61,5 +62,7 @@ public class ApiClient {
     }
 
     public void setToken(String token) { this.token = token; }
+    public void setUserId(long id)     { this.userId = id; }
+    public long getUserId()            { return userId; }
     public ApiService getService()     { return service; }
 }
