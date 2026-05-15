@@ -34,7 +34,7 @@ public class EventListView extends BorderPane {
             @Override
             protected void updateItem(EventDTO item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty || item == null ? null : item.name() + " — " + item.venue());
+                setText(empty || item == null ? null : item.title() + " — " + item.status());
             }
         });
 

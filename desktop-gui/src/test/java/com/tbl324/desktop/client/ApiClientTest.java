@@ -36,12 +36,12 @@ class ApiClientTest {
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
-                        .withBody("[{\"id\":1,\"name\":\"Konser\",\"venue\":\"Stadyum\"}]")));
+                        .withBody("{\"success\":true,\"data\":{\"content\":[{\"id\":1,\"title\":\"Konser\",\"description\":\"Harika bir konser\",\"venueId\":1,\"status\":\"ACTIVE\"}]}}")));
 
         List<EventDTO> events = apiClient.getEvents();
 
         assertThat(events).hasSize(1);
-        assertThat(events.get(0).name()).isEqualTo("Konser");
+        assertThat(events.get(0).title()).isEqualTo("Konser");
     }
 
     @Test

@@ -1,3 +1,6 @@
 package com.tbl324.desktop.model;
 
-public record SeatDTO(Long id, int row, int col, SeatStatus status) {}
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record SeatDTO(Long id, String rowLabel, int seatNumber, SeatStatus status) {}

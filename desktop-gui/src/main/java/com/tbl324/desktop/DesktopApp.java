@@ -1,6 +1,7 @@
 package com.tbl324.desktop;
 
 import com.tbl324.desktop.client.ApiClient;
+import com.tbl324.desktop.client.ApiException;
 import com.tbl324.desktop.view.EventListView;
 import com.tbl324.desktop.view.LoginView;
 import com.tbl324.desktop.view.SeatMapView;
@@ -30,10 +31,19 @@ public class DesktopApp extends Application {
     }
 
     private void showLogin() {
+        LoginView[] ref = new LoginView[1];
         LoginView login = new LoginView((username, password) -> {
-            // mock login: gerçek auth service çağrısı faz 6+ ile
-            showEventList();
+            try {
+                apiClient.login(username, password);
+                currentUserId = apiClient.getUserId();
+                showEventList();
+            } catch (ApiException ex) {
+                ref[0].showError("Giriş başarısız: kullanıcı adı veya şifre hatalı.");
+            } catch (Exception ex) {
+                ref[0].showError("Bağlantı hatası: " + ex.getMessage());
+            }
         });
+        ref[0] = login;
         primaryStage.setScene(new Scene(login, 900, 650));
     }
 
