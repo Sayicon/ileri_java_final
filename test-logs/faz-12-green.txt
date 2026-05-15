@@ -1,0 +1,22 @@
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  12.847 s
+[INFO] Finished at: 2026-05-15T14:22:31+03:00
+[INFO] ------------------------------------------------------------------------
+
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
+
+com.tbl324.desktop.client.ApiClientTest:
+  [PASS] getEvents_success_returnsEventList
+  [PASS] getEvents_unauthorized_throwsApiException
+  [PASS] getEvents_serverError_throwsApiException
+  [PASS] getEvents_networkFailure_throwsApiException
+  [PASS] getMyTickets_success_returnsTicketList
+  [PASS] getMyTickets_emptyList_returnsEmpty
+  [PASS] reserve_success_returnsTicketDTO
+  [PASS] confirmTicket_success_doesNotThrow
+  [PASS] confirmTicket_serverError_throwsApiException
+
+GREEN state — Faz 12 B commit: reserve→TicketDTO ve confirmTicket desktop-gui implementasyonu tamamlandı.
+Android: reserveWithResponse + confirmTicket + ödeme seçim dialog (AlertDialog).

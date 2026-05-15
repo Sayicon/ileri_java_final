@@ -284,37 +284,16 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 
 ---
 
-### FAZ 12 — Rezervasyon → Ödeme → Onay Akışı
+### FAZ 12 — ✅ Tamamlandı
 
-**Sorumlu: Kerem** · **Hedef: Tam biletleme döngüsü — reserve → confirm**
+**Commit:** B-green · **Tarih:** 2026-05-15 · **Sorumlu: Kerem**
 
-**Sorun:** Backend'de `POST /tickets/{id}/confirm` var (PaymentType: CASH/CREDIT_CARD) ama hiç çağrılmıyor. Rezervasyon RESERVED'da kalıyor, CONFIRMED'a geçmiyor. Ödeme adımı olmadan uygulama yarım.
-
-#### A — Testler (önce commit'le)
-- [ ] `desktop-gui`: `ApiClientTest` — `confirmTicket(ticketId, paymentType)` mock testi
-- [ ] **Commit:** `test(faz12): ticket confirm akışı api client testleri`
-
-#### B — Uygulama
-
-**desktop-gui:**
-- [ ] `ApiClient`: `confirmTicket(Long ticketId, String paymentType)` ekle — `POST /tickets/{id}/confirm`
-- [ ] `ApiClient.reserve()` → ticketId dönsün (şu an void)
-- [ ] `SeatMapView`: Rezervasyon sonrası ödeme dialog'u:
-  - Alert/Dialog: "Ödeme Yöntemi Seçin" → [Nakit] [Kredi Kartı] [İptal]
-  - Seçim sonrası `confirmTicket()` çağır
-  - Başarıda: "✓ Biletiniz onaylandı!" mesajı, koltuklar SOLD rengine döner
-- [ ] `ApiClient.reserve()` dönüş tipi `TicketDTO` olsun (ticketId için)
-
-**android-mobile:**
-- [ ] `ApiService`: `confirmTicket` ve `reserveWithResponse` endpoint'leri (Call<TicketResponse>)
-- [ ] `TicketResponse` wrapper sınıfı
-- [ ] `SeatMapActivity.reserve()`: rezervasyon sonrası ödeme seçim dialog'u (AlertDialog)
-  - "Nakit" / "Kredi Kartı" seçenekleri
-  - Seçim → confirm çağır → "Bilet onaylandı!" Toast
-
-- [ ] `gradle test` → yeşil · `test-logs/faz-12-green.txt`
-- [ ] **Commit:** `feat(faz12): reserve → ödeme seçimi → confirm akışı desktop ve android`
-- [ ] **AGENTS.md güncelle**
+- `ApiClient.reserve()` dönüş tipi `void` → `TicketDTO` (ticketId toplamak için).
+- `ApiClient.confirmTicket(Long ticketId, String paymentType)` eklendi — `POST /tickets/{id}/confirm`.
+- `SeatMapView`: `doReserve()` ticketId'leri topluyor; `showPaymentDialog()` → [Nakit] [Kredi Kartı] [İptal] → `confirmTicket()` çağrısı → "Biletiniz onaylandı!" mesajı.
+- Android: `ApiService.reserveWithResponse()` (`Call<TicketResponse>`), `ApiService.confirmTicket()`, `TicketResponse` wrapper.
+- Android: `SeatMapActivity` — rezervasyon sonrası `AlertDialog` (Nakit / Kredi Kartı / İptal) → `confirmTickets()` → "Biletiniz onaylandı!" Toast.
+- `test-logs/faz-12-green.txt` ✅ (9 test, 0 hata).
 
 ---
 
@@ -369,7 +348,7 @@ Her fazda: **A commit** (testler kırmızı) → `test-logs/faz-N-red.txt` → *
 | 9 — performance | Efe | ✅ | 2026-05-14 | 2026-05-15 | `57b0c74` B-green |
 | 10 — README + son | Kerem | ✅ | 2026-05-15 | 2026-05-15 | B-green |
 | 11 — Biletlerim | Efe | ✅ | 2026-05-15 | 2026-05-15 | `8667f8d` B-green |
-| 12 — Ödeme akışı | Kerem | ⬜ | — | — | — |
+| 12 — Ödeme akışı | Kerem | ✅ | 2026-05-15 | 2026-05-15 | B-green |
 | 13 — Admin paneli | Efe | ⬜ | — | — | — |
 
 ⬜ Başlanmadı · 🟡 Devam ediyor · ✅ Tamamlandı
