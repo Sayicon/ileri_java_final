@@ -9,7 +9,6 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
@@ -60,7 +59,7 @@ public class TicketJdbcRepository extends BaseJdbcRepository<TicketDTO> {
         if (dto.id() == null) {
             KeyHolder keys = new GeneratedKeyHolder();
             jdbc.update(con -> {
-                PreparedStatement ps = con.prepareStatement(insertSql(), Statement.RETURN_GENERATED_KEYS);
+                PreparedStatement ps = con.prepareStatement(insertSql(), new String[]{"id"});
                 try { setInsertParams(ps, dto); } catch (Exception e) { throw new RuntimeException(e); }
                 return ps;
             }, keys);
