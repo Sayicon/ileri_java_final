@@ -16,15 +16,18 @@ public class EventListView extends BorderPane {
     private final ApiClient apiClient;
     private final Long userId;
     private final BiConsumer<EventDTO, Long> onEventSelected;
+    private final Runnable onMyTickets;
 
     private final ListView<EventDTO> listView = new ListView<>();
     private final Label statusLabel = new Label("Etkinlikler yükleniyor...");
 
     public EventListView(ApiClient apiClient, Long userId,
-                         BiConsumer<EventDTO, Long> onEventSelected) {
+                         BiConsumer<EventDTO, Long> onEventSelected,
+                         Runnable onMyTickets) {
         this.apiClient       = apiClient;
         this.userId          = userId;
         this.onEventSelected = onEventSelected;
+        this.onMyTickets     = onMyTickets;
         buildUi();
         loadEvents();
     }
@@ -34,7 +37,7 @@ public class EventListView extends BorderPane {
             @Override
             protected void updateItem(EventDTO item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty || item == null ? null : item.name() + " — " + item.venue());
+                setText(empty || item == null ? null : item.title() + " — " + item.status());
             }
         });
 
@@ -47,7 +50,10 @@ public class EventListView extends BorderPane {
         Button refreshBtn = new Button("Yenile");
         refreshBtn.setOnAction(e -> loadEvents());
 
-        HBox bottom = new HBox(8, statusLabel, refreshBtn, selectBtn);
+        Button ticketsBtn = new Button("Biletlerim");
+        ticketsBtn.setOnAction(e -> onMyTickets.run());
+
+        HBox bottom = new HBox(8, statusLabel, refreshBtn, selectBtn, ticketsBtn);
         bottom.setPadding(new Insets(8));
 
         setCenter(listView);

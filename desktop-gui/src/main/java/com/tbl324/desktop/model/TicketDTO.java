@@ -3,4 +3,4 @@ package com.tbl324.desktop.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record SeatDTO(Long id, String rowLabel, int seatNumber, SeatStatus status) {}
+public record TicketDTO(Long id, Long eventId, Long seatId, Long userId, String status) {}

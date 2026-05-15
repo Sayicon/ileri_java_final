@@ -6,7 +6,8 @@
     <application
         android:allowBackup="true"
         android:label="TBL324 Ticketing"
-        android:theme="@android:style/Theme.Material.Light">
+        android:theme="@android:style/Theme.Material.Light"
+        android:usesCleartextTraffic="true">
 
         <activity
             android:name=".LoginActivity"
@@ -17,8 +18,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".EventListActivity" android:exported="false" />
-        <activity android:name=".SeatMapActivity"   android:exported="false" />
+        <activity android:name=".EventListActivity"  android:exported="false" />
+        <activity android:name=".SeatMapActivity"    android:exported="false" />
+        <activity android:name=".MyTicketsActivity"  android:exported="false" />
 
     </application>
 
