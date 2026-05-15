@@ -31,7 +31,7 @@ public abstract class BaseJdbcRepository<T> {
             try { setInsertParams(ps, entity); } catch (Exception e) { throw new RuntimeException(e); }
             return ps;
         }, keys);
-        Long id = keys.getKey().longValue();
+        Long id = ((Number) keys.getKeys().get("id")).longValue();
         return withId(entity, id);
     }
 

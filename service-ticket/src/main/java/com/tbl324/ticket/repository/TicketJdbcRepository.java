@@ -64,7 +64,7 @@ public class TicketJdbcRepository extends BaseJdbcRepository<TicketDTO> {
                 try { setInsertParams(ps, dto); } catch (Exception e) { throw new RuntimeException(e); }
                 return ps;
             }, keys);
-            return withId(dto, keys.getKey().longValue());
+            return withId(dto, ((Number) keys.getKeys().get("id")).longValue());
         } else {
             jdbc.update("UPDATE tickets SET status = ? WHERE id = ?", dto.status().name(), dto.id());
             return dto;
